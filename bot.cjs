@@ -88,6 +88,22 @@ function saveDb() {
 
 client.once("ready", async () => {
   console.log(`Bot logged in as ${client.user.tag}`);
+  
+  // Populate voiceJoinTimes for existing users in voice channels
+  try {
+    const guild = await client.guilds.fetch(SERVER_ID);
+    guild.channels.cache.filter(c => c.isVoiceBased()).forEach(channel => {
+      channel.members.forEach(member => {
+        if (!member.user.bot) {
+          voiceJoinTimes[member.id] = Date.now();
+        }
+      });
+    });
+    console.log(`Populated active voice times for ${Object.keys(voiceJoinTimes).length} users.`);
+  } catch (err) {
+    console.error("Failed to populate initial voice times:", err);
+  }
+
   await fetchHistoricalData();
   await syncStats();
   setInterval(syncStats, 2 * 60 * 1000);
@@ -275,6 +291,52 @@ client.on("voiceStateUpdate", (oldState, newState) => {
     }
   }
 });
+
+// Continuously update active voice channel users every 1 minute
+setInterval(() => {
+  const now = Date.now();
+  let updated = false;
+  
+  for (const [userId, joinTime] of Object.entries(voiceJoinTimes)) {
+    const durationMinutes = Math.floor((now - joinTime) / 60000);
+    
+    if (durationMinutes > 0) {
+      const guild = client.guilds.cache.get(SERVER_ID);
+      const member = guild?.members.cache.get(userId);
+      
+      if (member) {
+        initUserStats(userId, member.user.username, member.user.avatar);
+        const today = getTodayString();
+        const week = getWeekString();
+        const month = getMonthString();
+
+        userStats[userId].daily[today].voiceMinutes += durationMinutes;
+        userStats[userId].weekly[week].voiceMinutes += durationMinutes;
+        userStats[userId].monthly[month].voiceMinutes += durationMinutes;
+        
+        // Advance the join time to not double count
+        voiceJoinTimes[userId] = now - ((now - joinTime) % 60000);
+        updated = true;
+      } else {
+        // Fallback if member cache is missing but they are in the voiceJoinTimes
+        if (userStats[userId]) {
+           const today = getTodayString();
+           const week = getWeekString();
+           const month = getMonthString();
+           if (userStats[userId].daily[today]) userStats[userId].daily[today].voiceMinutes += durationMinutes;
+           if (userStats[userId].weekly[week]) userStats[userId].weekly[week].voiceMinutes += durationMinutes;
+           if (userStats[userId].monthly[month]) userStats[userId].monthly[month].voiceMinutes += durationMinutes;
+           voiceJoinTimes[userId] = now - ((now - joinTime) % 60000);
+           updated = true;
+        }
+      }
+    }
+  }
+  
+  if (updated) {
+    saveDb();
+  }
+}, 60000);
 
 function getTopUsers(period, type) { // period: 'daily', 'weekly', 'monthly', type: 'messages', 'voiceMinutes'
   const timeKey = period === 'daily' ? getTodayString() : period === 'weekly' ? getWeekString() : getMonthString();
