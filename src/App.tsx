@@ -56,6 +56,7 @@ function HomePage() {
                     label: "اكتشف المزيد",
                     onClick: () => setDiscoverModalOpen(true),
                   },
+                }}
               />
 
               <Suspense fallback={<SectionFallback />}>
