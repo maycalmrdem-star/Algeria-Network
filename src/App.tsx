@@ -13,12 +13,13 @@ const TopUsersSection   = lazy(() => import("./components/TopUsersSection").then
 const RolesSection      = lazy(() => import("./components/RolesSection").then(m => ({ default: m.RolesSection })));
 const AdminDashboard    = lazy(() => import("./pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 const Stats             = lazy(() => import("./components/Stats").then(m => ({ default: m.Stats })));
-const WaitlistHero = lazy(() => import('./components/WaitlistHero').then(module => ({ default: module.WaitlistHero })));
+const WaitlistHero = lazy(() => import("./components/ui/waitlist-hero").then(module => ({ default: module.WaitlistHero })));
 const VideoScrollReveal = lazy(() => import('./components/VideoScrollReveal').then(module => ({ default: module.VideoScrollReveal })));
 const GamesGrid         = lazy(() => import("./components/GamesGrid").then(m => ({ default: m.GamesGrid })));
 const Footer            = lazy(() => import("./components/Footer").then(m => ({ default: m.Footer })));
 const DiscoverMoreModal = lazy(() => import("./components/ui/discover-more-modal").then(m => ({ default: m.DiscoverMoreModal })));
 const EventNotification = lazy(() => import("./components/EventNotification").then(m => ({ default: m.EventNotification })));
+const CommunityFocusRail = lazy(() => import("./components/CommunityFocusRail").then(m => ({ default: m.CommunityFocusRail })));
 
 function SectionFallback() {
   return <div className="h-32 animate-pulse bg-white/[0.02] rounded-2xl mx-6 my-4" />;
@@ -88,6 +89,10 @@ function HomePage() {
 
               <Suspense fallback={<SectionFallback />}>
                 <VideoScrollReveal />
+              </Suspense>
+
+              <Suspense fallback={<SectionFallback />}>
+                <CommunityFocusRail />
               </Suspense>
             </main>
 
