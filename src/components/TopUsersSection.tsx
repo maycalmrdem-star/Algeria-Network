@@ -2,6 +2,27 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy, MessageCircle, Headphones } from "lucide-react";
 
+const formatVoiceTime = (mins: number) => {
+  if (!mins) return "0 دقيقة";
+  if (mins < 60) return `${mins} دقيقة`;
+  
+  const hours = Math.floor(mins / 60);
+  const remainingMins = mins % 60;
+  
+  let hoursText = "ساعة";
+  if (hours === 2) hoursText = "ساعتين";
+  else if (hours > 2 && hours <= 10) hoursText = "ساعات";
+  else if (hours > 10) hoursText = "ساعة";
+  
+  let result = hours === 1 ? "ساعة" : hours === 2 ? "ساعتين" : `${hours} ${hoursText}`;
+  
+  if (remainingMins > 0) {
+    result += ` و ${remainingMins} دقيقة`;
+  }
+  
+  return result;
+};
+
 export function TopUsersSection() {
   const [stats, setStats] = useState<any>(null);
 
@@ -66,7 +87,7 @@ export function TopUsersSection() {
                       <span className="text-white font-medium text-lg">{user.username}</span>
                     </div>
                     <div className="text-gray-300 font-mono text-sm bg-white/10 px-3 py-1 rounded-lg">
-                      {user.voiceMinutes} دقيقة
+                      {formatVoiceTime(user.voiceMinutes)}
                     </div>
                   </div>
                 ))

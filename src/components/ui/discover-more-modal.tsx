@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Activity, Shield, ScrollText, Volume2, MessageSquare, Award, Flame } from "lucide-react";
+import { X, Activity, Shield, ScrollText, Volume2, MessageSquare, Award, Flame, Trophy, Star } from "lucide-react";
+
+const formatVoiceTime = (mins: number) => {
+  if (!mins) return "0 دقيقة";
+  if (mins < 60) return `${mins} دقيقة`;
+  
+  const hours = Math.floor(mins / 60);
+  const remainingMins = mins % 60;
+  
+  let hoursText = "ساعة";
+  if (hours === 2) hoursText = "ساعتين";
+  else if (hours > 2 && hours <= 10) hoursText = "ساعات";
+  else if (hours > 10) hoursText = "ساعة";
+  
+  let result = hours === 1 ? "ساعة" : hours === 2 ? "ساعتين" : `${hours} ${hoursText}`;
+  
+  if (remainingMins > 0) {
+    result += ` و ${remainingMins} دقيقة`;
+  }
+  
+  return result;
+};
 
 interface DiscoverMoreModalProps {
   isOpen: boolean;
@@ -235,7 +256,7 @@ function ActivityTab() {
                   <h4 className="font-bold text-white truncate text-lg group-hover:text-[#5865F2] transition-colors">{user.username}</h4>
                   <div className="text-sm text-white/60 flex items-center gap-2">
                     {category === "chat" ? <MessageSquare className="w-3 h-3 text-[#5865F2]" /> : <Volume2 className="w-3 h-3 text-[#5865F2]" />}
-                    <span>{category === "chat" ? "الرسائل:" : "الدقائق:"} <span className="font-bold text-white">{category === "chat" ? (user.value || 0) : (user.value || 0)}</span></span>
+                    <span>{category === "chat" ? "الرسائل:" : "المدة:"} <span className="font-bold text-white">{category === "chat" ? (user.value || 0) : formatVoiceTime(user.value || 0)}</span></span>
                   </div>
                 </div>
                 
