@@ -114,6 +114,14 @@ client.once("ready", async () => {
     console.error("Failed to populate initial voice times:", err);
   }
 
+  // Load dashboard
+  try {
+    require('./dashboard/server.js')(client);
+    console.log("Dashboard server loaded.");
+  } catch (err) {
+    console.error("Error loading dashboard server:", err.message);
+  }
+
   await fetchHistoricalData();
   await syncStats();
   setInterval(syncStats, 2 * 60 * 1000);
