@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.netlify/
+algeria-bot-host.zip
+bot-host/
+public/discord-stats.json
+public/events.json
+user-stats-db.json
+website-visits.json
+*.log
