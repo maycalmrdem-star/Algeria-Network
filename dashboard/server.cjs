@@ -28,7 +28,7 @@ module.exports = (client) => {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const apiRoutes = require('../api/src/routes/api');
+const apiRoutes = require('../api/src/routes/api.cjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
