@@ -10,10 +10,10 @@ export function DiscordStats() {
     fetch('https://discord.com/api/v9/invites/34fqkXH6ts?with_counts=true')
       .then(res => res.json())
       .then(data => {
-        if (data && data.approximate_member_count) {
+        if (data && typeof data.approximate_member_count === 'number') {
           setStats({
-            online: data.approximate_presence_count,
-            total: data.approximate_member_count
+            online: data.approximate_presence_count || 0,
+            total: data.approximate_member_count || 0
           });
         }
       })

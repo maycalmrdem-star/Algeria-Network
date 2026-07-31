@@ -91,7 +91,103 @@ client.once("ready", async () => {
   await fetchHistoricalData();
   await syncStats();
   setInterval(syncStats, 2 * 60 * 1000);
+  
+  // Start syncing live widget every 5 seconds
+  setInterval(syncLiveWidget, 5000);
+
+  // Poll for events every 10 seconds
+  setInterval(pollEvents, 10000);
 });
+
+async function pollEvents() {
+  try {
+    const res = await fetch('https://algeria-network.netlify.app/api/events');
+    if (!res.ok) return;
+    const newEvents = await res.json();
+    
+    // Find newly live events
+    const newLiveEvents = newEvents.filter(e => 
+      e.status === 'live' && 
+      !activeEvents.find(oldE => oldE.id === e.id && oldE.status === 'live')
+    );
+
+    activeEvents = newEvents;
+    fs.writeFileSync(EVENTS_DB_PATH, JSON.stringify(activeEvents, null, 2));
+
+    // Announce newly live events in Discord
+    if (newLiveEvents.length > 0 && client.isReady()) {
+      try {
+        const guild = await client.guilds.fetch(SERVER_ID);
+        let channel = guild.channels.cache.find(c => c.name.includes("اعلانات") || c.name.includes("announcement") || c.name.includes("general"));
+        if (!channel) channel = guild.channels.cache.find(c => c.isTextBased());
+        
+        if (channel) {
+          for (const ev of newLiveEvents) {
+            await channel.send(`@everyone 🔴 **بدأت الفعالية الآن:** ${ev.title}\nانضموا إلينا على الموقع!\nhttps://algeria-network.com/?ref=discord`);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to announce event:", e);
+      }
+    }
+  } catch (err) {
+    console.error("Error polling events:", err.message);
+  }
+}
+
+async function syncLiveWidget() {
+  try {
+    const guild = await client.guilds.fetch(SERVER_ID);
+    const channels = guild.channels.cache.filter(c => c.isVoiceBased()).sort((a, b) => a.position - b.position);
+    
+    const widgetChannels = [];
+    const widgetMembers = [];
+    let presenceCount = 0;
+
+    guild.members.cache.forEach(m => {
+      if (!m.user.bot && m.presence && m.presence.status !== 'offline') presenceCount++;
+    });
+
+    channels.forEach(ch => {
+      widgetChannels.push({ id: ch.id, name: ch.name, position: ch.position });
+      ch.members.forEach(m => {
+        if (m.user.bot) return;
+        widgetMembers.push({
+          id: m.user.id,
+          username: m.user.username,
+          status: m.presence?.status || 'online',
+          avatar_url: m.user.displayAvatarURL({ extension: 'png', size: 64 }),
+          channel_id: ch.id,
+          streaming: m.voice.streaming || false,
+          self_video: m.voice.selfVideo || false,
+          game: m.presence?.activities[0] ? { name: m.presence.activities[0].name } : undefined
+        });
+      });
+    });
+
+    const payload = {
+      id: SERVER_ID,
+      name: guild.name,
+      presence_count: presenceCount,
+      channels: widgetChannels,
+      members: widgetMembers
+    };
+    
+    // Save locally for Vite dev server
+    localLiveWidgetData = payload;
+
+    await fetch('https://algeria-network.netlify.app/api/live-widget', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': `Bearer ${ADMIN_PASSWORD}`
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.error("Failed to sync live widget:", err.message);
+  }
+}
 
 async function fetchHistoricalData() {
   console.log("Fetching historical data...");
@@ -240,13 +336,41 @@ async function syncStats() {
     };
 
     fs.writeFileSync(PUBLIC_STATS_PATH, JSON.stringify(dataPayload, null, 2));
-    console.log("Successfully saved stats to public/discord-stats.json");
+    
+    try {
+      await fetch('https://algeria-network.netlify.app/api/discord-stats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `Bearer ${ADMIN_PASSWORD}`
+        },
+        body: JSON.stringify(dataPayload)
+      });
+      console.log("Successfully pushed stats to Netlify");
+    } catch (pushErr) {
+      console.error("Error pushing stats to Netlify:", pushErr.message);
+    }
   } catch (error) {
     console.error("Error saving stats locally:", error.message);
   }
 }
 
 // EXPRESS API
+let localLiveWidgetData = { channels: [], members: [], presence_count: 0 };
+
+app.get("/api/live-widget", (req, res) => {
+  res.json(localLiveWidgetData);
+});
+
+app.get("/api/discord-stats", (req, res) => {
+  if (fs.existsSync(PUBLIC_STATS_PATH)) {
+    const data = JSON.parse(fs.readFileSync(PUBLIC_STATS_PATH, 'utf8'));
+    res.json(data);
+  } else {
+    res.json({ roles: [], topStudiers: {daily:[], weekly:[], monthly:[]}, topTalkers: {daily:[], weekly:[], monthly:[]} });
+  }
+});
+
 app.get("/api/events", async (req, res) => {
   let voiceCount = 0;
   if (client.isReady()) {
@@ -283,43 +407,7 @@ app.post("/api/auth", (req, res) => {
   return res.status(401).json({ success: false, message: "بيانات الدخول غير صحيحة" });
 });
 
-app.post("/api/events", async (req, res) => {
-  const password = req.headers["x-admin-password"];
-  if (password !== ADMIN_PASSWORD) {
-     return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  const newEvents = req.body.events || [];
-  
-  // Find newly live events
-  const newLiveEvents = newEvents.filter(e => 
-    e.status === 'live' && 
-    !activeEvents.find(oldE => oldE.id === e.id && oldE.status === 'live')
-  );
-
-  activeEvents = newEvents;
-  fs.writeFileSync(EVENTS_DB_PATH, JSON.stringify(activeEvents, null, 2));
-
-  // Announce newly live events in Discord
-  if (newLiveEvents.length > 0 && client.isReady()) {
-    try {
-      const guild = await client.guilds.fetch(SERVER_ID);
-      let channel = guild.channels.cache.find(c => c.name.includes("اعلانات") || c.name.includes("announcement") || c.name.includes("general"));
-      if (!channel) channel = guild.channels.cache.find(c => c.isTextBased());
-      
-      if (channel) {
-        for (const ev of newLiveEvents) {
-          // Added ?ref=discord to the URL link in announcement
-          await channel.send(`@everyone 🔴 **بدأت الفعالية الآن:** ${ev.title}\nانضموا إلينا على الموقع!\nhttps://algeria-network.com/?ref=discord`);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to announce event:", e);
-    }
-  }
-
-  res.json({ success: true });
-});
+// Removed app.post("/api/events") as bot now polls netlify
 
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3001;
 app.listen(PORT, () => {

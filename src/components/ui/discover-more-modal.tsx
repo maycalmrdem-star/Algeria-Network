@@ -121,7 +121,7 @@ function ActivityTab() {
         setError(null);
       }
       try {
-        const res = await fetch(`/discord-stats.json?t=${Date.now()}`);
+        const res = await fetch(`/api/discord-stats?t=${Date.now()}`);
         if (!res.ok) throw new Error('Failed to fetch');
         const json = await res.json();
         
@@ -265,7 +265,7 @@ function RolesTab() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`/discord-stats.json?t=${Date.now()}`);
+        const res = await fetch(`/api/discord-stats?t=${Date.now()}`);
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
         

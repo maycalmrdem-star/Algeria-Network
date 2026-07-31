@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { Activity, Mic, ExternalLink, Users, RefreshCw } from "lucide-react";
 
 const GUILD_ID       = "1531987166048030750";
-const WIDGET_API     = `https://discord.com/api/guilds/${GUILD_ID}/widget.json`;
+const WIDGET_API     = `/api/live-widget`;
 const INVITE_API     = `https://discord.com/api/v9/invites/34fqkXH6ts?with_counts=true`;
 const DISCORD_INVITE = "https://discord.gg/34fqkXH6ts";
 
@@ -102,7 +102,7 @@ export const Stats = () => {
 
   useEffect(() => {
     fetchAll();
-    const id = setInterval(() => fetchAll(), 60_000); // auto-refresh every 60s
+    const id = setInterval(() => fetchAll(), 5000); // auto-refresh every 5s
     return () => clearInterval(id);
   }, [fetchAll]);
 
@@ -117,10 +117,10 @@ export const Stats = () => {
   ];
 
   /* group members by voice channel */
-  const voiceChannels = (widget?.channels ?? []).map(ch => ({
+  const voiceChannels = (widget?.channels || []).map(ch => ({
     ...ch,
-    members: (widget?.members ?? []).filter(m => m.channel_id === ch.id),
-  })).sort((a, b) => a.position - b.position);
+    members: (widget?.members || []).filter(m => m.channel_id === ch.id),
+  })).sort((a, b) => (a.position || 0) - (b.position || 0));
 
   const onlineOnly = (widget?.members ?? []).filter(m => !m.channel_id);
 

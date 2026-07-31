@@ -24,7 +24,6 @@ function SectionFallback() {
 }
 
 function HomePage() {
-  const [introComplete, setIntroComplete] = useState(false);
   const [isDiscoverModalOpen, setDiscoverModalOpen] = useState(false);
 
   useEffect(() => {
@@ -39,19 +38,8 @@ function HomePage() {
   }, []);
 
   return (
-    <>
-      <IntroScreen onComplete={() => setIntroComplete(true)} />
-
-      <AnimatePresence>
-        {introComplete && (
-          <motion.div
-            key="main"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="t-bg-primary min-h-screen"
-          >
-            <Navbar />
+    <div className="t-bg-primary min-h-screen">
+      <Navbar />
 
             <main>
               <AppleHero
@@ -105,11 +93,7 @@ function HomePage() {
             <Suspense fallback={null}>
               <EventNotification />
             </Suspense>
-          </motion.div>
-
-        )}
-      </AnimatePresence>
-    </>
+    </div>
   );
 }
 

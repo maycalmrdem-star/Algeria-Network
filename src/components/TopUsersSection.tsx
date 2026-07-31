@@ -14,8 +14,8 @@ export function TopUsersSection() {
 
   if (!stats) return null;
 
-  const topStudiers = stats.topStudiers || [];
-  const topTalkers = stats.topTalkers || [];
+  const topStudiers = stats.topStudiers?.daily || [];
+  const topTalkers = stats.topTalkers?.daily || [];
 
   return (
     <section className="py-20 relative bg-black/50 backdrop-blur-sm border-t border-white/5">
