@@ -7,7 +7,7 @@ const DEMO_ITEMS: FocusRailItem[] = [
     title: "ألعاب وتحديات",
     description: "شارك في بطولات وألعاب ممتعة مع مجتمع جزائري شغوف بـ Gaming.",
     meta: "ترفيه • ألعاب",
-    imageSrc: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop",
+    imageSrc: "/images/community/community_gaming_1785476091826.png",
     href: "https://discord.gg/34fqkXH6ts",
   },
   {
@@ -15,7 +15,7 @@ const DEMO_ITEMS: FocusRailItem[] = [
     title: "غرف المذاكرة",
     description: "انضم إلى غرفنا الهادئة واستمتع ببيئة محفزة للدراسة والتركيز مع موسيقى Lo-Fi.",
     meta: "تعليم • تركيز",
-    imageSrc: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=1000&auto=format&fit=crop",
+    imageSrc: "/images/community/community_study_1785476103973.png",
     href: "https://discord.gg/34fqkXH6ts",
   },
   {
@@ -23,7 +23,7 @@ const DEMO_ITEMS: FocusRailItem[] = [
     title: "دردشة وتعارف",
     description: "تعرف على أصدقاء جدد من مختلف ولايات الجزائر وتبادل معهم أطراف الحديث.",
     meta: "مجتمع • تواصل",
-    imageSrc: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1000&auto=format&fit=crop",
+    imageSrc: "/images/community/community_chat_1785476115852.png",
     href: "https://discord.gg/34fqkXH6ts",
   },
   {
@@ -31,7 +31,7 @@ const DEMO_ITEMS: FocusRailItem[] = [
     title: "فعاليات أسبوعية",
     description: "لا تفوت الفعاليات، المسابقات، والجوائز القيمة التي ننظمها باستمرار.",
     meta: "أحداث • جوائز",
-    imageSrc: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop",
+    imageSrc: "/images/community/community_events_1785476124968.png",
     href: "https://discord.gg/34fqkXH6ts",
   },
   {
@@ -39,7 +39,7 @@ const DEMO_ITEMS: FocusRailItem[] = [
     title: "غرف الاستماع للموسيقى",
     description: "استرخِ واستمع لأفضل المقاطع الموسيقية مع أصدقائك في غرف مخصصة.",
     meta: "موسيقى • استرخاء",
-    imageSrc: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000&auto=format&fit=crop",
+    imageSrc: "/images/community/community_music_1785476133339.png",
     href: "https://discord.gg/34fqkXH6ts",
   },
 ];
