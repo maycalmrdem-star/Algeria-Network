@@ -56,9 +56,15 @@ function HomePage() {
                     label: "اكتشف المزيد",
                     onClick: () => setDiscoverModalOpen(true),
                   },
-                }}
               />
 
+              <Suspense fallback={<SectionFallback />}>
+                <VideoScrollReveal />
+              </Suspense>
+
+              <Suspense fallback={<SectionFallback />}>
+                <CommunityFocusRail />
+              </Suspense>
 
               <div id="features">
                 <Suspense fallback={<SectionFallback />}><Features /></Suspense>
@@ -87,14 +93,6 @@ function HomePage() {
               <div id="join">
                 <Suspense fallback={<SectionFallback />}><WaitlistHero /></Suspense>
               </div>
-
-              <Suspense fallback={<SectionFallback />}>
-                <VideoScrollReveal />
-              </Suspense>
-
-              <Suspense fallback={<SectionFallback />}>
-                <CommunityFocusRail />
-              </Suspense>
             </main>
 
             <Suspense fallback={null}><Footer /></Suspense>
