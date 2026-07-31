@@ -12,7 +12,11 @@ export const handler = async (event) => {
   }
 
   try {
-    const store = getStore("discord_live_widget");
+    const store = getStore({
+      name: "discord_live_widget",
+      siteID: "60e3457f-0b6b-4262-96a9-fd72603324d6",
+      token: process.env.BLOBS_API_TOKEN || "nfc_mCsMe3xjLB2d6DK1NvNvuLuPrBo5qDeq35b2"
+    });
 
     if (event.httpMethod === "GET") {
       let data = null;
