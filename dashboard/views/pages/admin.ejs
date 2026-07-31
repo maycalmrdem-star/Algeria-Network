@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #2b2d31;
+            color: #dbdee1;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            background-color: #1e1f22;
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-y: auto;
+        }
+        .main-content {
+            margin-left: 280px;
+            padding: 40px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1f22; }
+        ::-webkit-scrollbar-thumb { background: #111214; border-radius: 4px; }
+
+        .bot-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+            border-bottom: 1px solid #111214;
+        }
+        .bot-profile img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .bot-profile h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f2f3f5;
+        }
+        
+        .nav-section {
+            padding: 16px 20px;
+        }
+        .nav-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #949ba4;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: #b5bac1;
+            text-decoration: none;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active {
+            background-color: #35373c;
+            color: #dbdee1;
+        }
+        .nav-item i {
+            width: 24px;
+            font-size: 1.1rem;
+        }
+        .nav-item .badge {
+            margin-left: auto;
+            background-color: #23a559;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .nav-item .premium-badge {
+            background-color: #f5c451;
+            color: #1e1f22;
+        }
+
+        /* Main Content */
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f2f3f5;
+            margin-bottom: 24px;
+        }
+        
+        .search-bar {
+            background-color: #1e1f22;
+            border: 1px solid #111214;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #dbdee1;
+            width: 300px;
+            outline: none;
+        }
+        .search-bar:focus {
+            border-color: #5865f2;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f2f3f5;
+        }
+        .plugins-count {
+            font-size: 0.85rem;
+            color: #949ba4;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #1e1f22;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #111214;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-color: #35373c;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .icon-box {
+            background-color: #2b2d31;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: #949ba4;
+            font-size: 1.2rem;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f2f3f5;
+        }
+        .card-desc {
+            font-size: 0.85rem;
+            color: #949ba4;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+        .card-btn {
+            background-color: transparent;
+            border: 1px solid #4e5058;
+            color: #dbdee1;
+            width: 100%;
+            padding: 8px 0;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .card-btn:hover {
+            background-color: #4e5058;
+        }
+
+        .toggle-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 24px;
+            background-color: #80848e;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle-switch.active {
+            background-color: #5865f2;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch.active::after {
+            left: 18px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="bot-profile">
+            <img src="/images/bot-logo.png" alt="Bot Logo" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <h2>Admin Panel</h2>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-title"><i class="fas fa-chevron-down mr-2"></i> GENERAL</div>
+            <a href="/admin" class="nav-item active"><i class="fas fa-eye"></i> Overview</a>
+            <a href="#" class="nav-item"><i class="fas fa-cog"></i> Server Settings</a>
+            <a href="#" class="nav-item"><i class="fas fa-envelope"></i> Embed Messages</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-title"><i class="fas fa-chevron-down mr-2"></i> MODULES</div>
+            <a href="/admin/commands" class="nav-item"><i class="fas fa-terminal"></i> Custom Commands <span class="badge">ON</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-hand-paper"></i> Welcome & Goodbye <span class="badge">ON</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-reply"></i> Auto Responder <span class="badge">ON</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-arrow-up"></i> Level System <span class="badge premium-badge">PREMIUM</span></a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-title"><i class="fas fa-chevron-down mr-2"></i> MODERATION</div>
+            <a href="/admin/moderation" class="nav-item"><i class="fas fa-gavel"></i> Moderation <span class="badge">ON</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-robot"></i> Automod <span class="badge">ON</span></a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="flex justify-between items-center mb-8">
+            <h1>Fast Access</h1>
+            <input type="text" class="search-bar" placeholder="Search plugins...">
+        </div>
+
+        <!-- General Section -->
+        <div class="section-header">
+            <div class="section-title">General</div>
+            <div class="plugins-count">3 plugins</div>
+        </div>
+
+        <div class="grid-cards">
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-eye"></i></div>
+                    <div class="card-title">Overview</div>
+                </div>
+                <div class="card-desc">Get main information about your server settings</div>
+                <button class="card-btn">Visit ></button>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-cog"></i></div>
+                    <div class="card-title">Server Settings</div>
+                </div>
+                <div class="card-desc">Manage your server settings</div>
+                <button class="card-btn">Visit ></button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-envelope"></i></div>
+                    <div class="card-title">Embed Messages</div>
+                </div>
+                <div class="card-desc">Create and manage embed messages</div>
+                <button class="card-btn">Visit ></button>
+            </div>
+        </div>
+
+        <!-- Modules Section -->
+        <div class="section-header">
+            <div class="section-title">Modules</div>
+            <div class="plugins-count">Available plugins</div>
+        </div>
+
+        <div class="grid-cards">
+            <!-- Custom Commands -->
+            <div class="card">
+                <div class="toggle-switch active"></div>
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-terminal"></i></div>
+                    <div class="card-title">Custom Commands</div>
+                </div>
+                <div class="card-desc">Build your own custom commands for the bot</div>
+                <a href="/admin/commands"><button class="card-btn">Visit ></button></a>
+            </div>
+
+            <!-- Welcome -->
+            <div class="card">
+                <div class="toggle-switch active"></div>
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-hand-paper"></i></div>
+                    <div class="card-title">Welcome & Goodbye</div>
+                </div>
+                <div class="card-desc">Greet new members and say goodbye to leaving ones</div>
+                <button class="card-btn">Visit ></button>
+            </div>
+
+            <!-- Moderation -->
+            <div class="card">
+                <div class="toggle-switch active"></div>
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-gavel"></i></div>
+                    <div class="card-title">Advanced Moderation</div>
+                </div>
+                <div class="card-desc">IP Ban, warn, kick, and manage your server securely</div>
+                <a href="/admin/moderation"><button class="card-btn">Visit ></button></a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Toggle switches animation
+        document.querySelectorAll('.toggle-switch').forEach(switchEl => {
+            switchEl.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>

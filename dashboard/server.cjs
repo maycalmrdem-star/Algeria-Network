@@ -456,6 +456,29 @@ function ensureAuthenticated(req, res, next) {
     res.redirect('/');
 }
 
+function ensureAdmin(req, res, next) {
+    if (req.isAuthenticated()) {
+        const allowedUsers = ['8c9h', 'vqzr'];
+        if (allowedUsers.includes(req.user.username)) {
+            return next();
+        } else {
+            return res.status(403).send(`
+                <html>
+                <head><title>Access Denied</title></head>
+                <body style="background-color: #1a1a2e; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; text-align: center;">
+                    <div>
+                        <h1 style="color: #e94560;">Access Denied / دخول مرفوض</h1>
+                        <p>عذراً، هذه اللوحة مخصصة لإدارة البوت فقط (Admin Panel) ولا تملك صلاحية الدخول إليها.</p>
+                        <a href="/logout" style="color: #0f3460; background: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; display: inline-block;">تسجيل الخروج</a>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+    }
+    res.redirect('/');
+}
+
 async function fetchCommands() {
     const fs = require('fs').promises;
     const path = require('path');
@@ -565,6 +588,12 @@ async function fetchCoinLeaderboard(page, limit, userId) {
         return { leaderboard: [], totalUsers: 0, userRank: null, userBalance: 0 };
     }
 }
+app.get('/admin', ensureAdmin, (req, res) => {
+    res.render('pages/admin', {
+        user: req.user
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Dashboard server is running on port ${PORT}`);
 });
