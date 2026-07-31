@@ -144,6 +144,18 @@ client.once("ready", async () => {
 
   // Poll for events every 10 seconds
   setInterval(pollEvents, 10000);
+
+  // Register Slash Commands
+  try {
+    const commands = [
+      { name: 'status', description: 'يعرض حالة البوت ووقت التشغيل' },
+      { name: 'stats', description: 'يعرض إحصائيات الموقع' }
+    ];
+    await client.application.commands.set(commands);
+    console.log("Slash commands registered successfully!");
+  } catch (err) {
+    console.error("Error registering slash commands:", err);
+  }
 });
 
 async function pollEvents() {
