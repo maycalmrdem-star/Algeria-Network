@@ -6,9 +6,22 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+// Firewall / Security Headers
+app.use(helmet());
+
+// Rate Limiting (100 requests per 15 minutes)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
 app.use(cors());
 app.use(express.json());
-
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,

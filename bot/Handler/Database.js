@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 module.exports = async () => {
-mongoose.connect('mongodb+srv://maker_bot:01159375910z@cluster0.4mkdwav.mongodb.net/dashboard')
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/dashboard')
 .then(() => {
     console.log('Database connection established successfully');
 })

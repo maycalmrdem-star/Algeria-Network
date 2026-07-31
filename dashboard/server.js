@@ -29,6 +29,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const apiRoutes = require('../api/src/routes/api');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+// Firewall / Security Headers (allow inline scripts for EJS and external images/fonts)
+app.use(helmet({
+  contentSecurityPolicy: false // Disable CSP temporarily to avoid breaking the dashboard's EJS inline scripts
+}));
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300, // 300 requests per 15 minutes for dashboard
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
