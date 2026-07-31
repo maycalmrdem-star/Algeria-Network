@@ -20,6 +20,16 @@ const client = new Client({
   ],
 });
 
+client.Çɱɗ = new Collection();
+client.Prefix = process.env.PREFIX || "!";
+
+// Connect Database
+require('./bot/Handler/Database.js')();
+// Load Events
+require('./bot/Handler/Events.js')(client);
+// Load Commands
+require('./bot/Handler/Commands.js')(client);
+
 const SERVER_ID = process.env.DISCORD_GUILD_ID;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
