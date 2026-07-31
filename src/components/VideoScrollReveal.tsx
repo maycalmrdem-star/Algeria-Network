@@ -7,14 +7,15 @@ export function VideoScrollReveal() {
       {/* Mobile view: Standard video display without scroll effects */}
       <div className="md:hidden w-full px-4 py-16">
         <h2 className="text-3xl font-bold text-center text-white mb-6">استمتع بتجربة لا مثيل لها</h2>
-        <div className="w-full aspect-video rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(88,101,242,0.15)] border border-white/10">
+        <div className="relative w-full aspect-video rounded-2xl overflow-hidden z-10">
+          <div className="absolute -inset-2 bg-gradient-to-tr from-[#5865F2] via-purple-500 to-pink-500 opacity-40 blur-[40px] animate-pulse -z-10 rounded-[30px]" />
           <video 
             src="/assets/dynamic-music-app-launch.mp4" 
             autoPlay 
             muted 
             loop 
             playsInline
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-2xl relative z-10"
           />
         </div>
       </div>

@@ -62,7 +62,7 @@ export const WaitlistHero = () => {
         <motion.div initial={{ opacity: 0, y: -16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-[#FFFFFF]/30 bg-[#FFFFFF]/10">
           <Sparkles className="w-4 h-4 text-[#FFFFFF]" />
-          <span className="text-sm font-semibold text-[#FFFFFF] tracking-wide">انضم إلى القائمة الانتظار</span>
+          <span className="text-sm font-semibold text-[#FFFFFF] tracking-wide">انضم إلى مجتمعنا</span>
         </motion.div>
 
         <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -75,43 +75,37 @@ export const WaitlistHero = () => {
         <motion.p initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           transition={{ delay: 0.2, duration: 0.7 }}
           className="t-text-secondary text-lg mb-12 leading-relaxed font-light">
-          سجّل بريدك الإلكتروني واحصل على وصول حصري مبكر مع مزايا لا تُعطى لاحقاً
+          احصل على وصول حصري مبكر مع مزايا لا تُعطى لاحقاً
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           transition={{ delay: 0.3, duration: 0.7 }}>
           {status !== "success" ? (
-            <form onSubmit={handleSubmit} className="relative flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-              <div className="relative flex-1">
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="بريدك الإلكتروني..." required
-                  className="w-full px-5 py-4 rounded-xl t-bg-card t-border t-text-primary placeholder:text-current placeholder:opacity-50 text-sm font-medium backdrop-blur-sm focus:outline-none focus:border-[#FFFFFF]/50 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.1)]"
-                  dir="rtl" />
-                <BorderBeam size={150} duration={8} borderWidth={1} colorFrom="#FFFFFF" colorTo="#888888" />
-              </div>
-              <motion.button type="submit" disabled={status === "loading"}
-                className="px-7 py-4 rounded-xl bg-[#FFFFFF] text-black font-semibold text-sm tracking-wide flex items-center gap-2 justify-center shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:shadow-[0_8px_40px_rgba(255,255,255,0.4)] transition-all duration-300 disabled:opacity-60"
+            <div className="relative flex flex-col sm:flex-row gap-3 max-w-sm mx-auto">
+              <motion.button onClick={(e) => {
+                e.preventDefault();
+                window.open("https://discord.gg/34fqkXH6ts", "_blank");
+                if (canvasRef.current) fireConfetti(canvasRef.current);
+                setStatus("success");
+              }}
+                className="w-full px-7 py-4 rounded-xl bg-[#FFFFFF] text-black font-semibold text-lg tracking-wide flex items-center justify-center gap-2 shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:shadow-[0_8px_40px_rgba(255,255,255,0.4)] transition-all duration-300 relative overflow-hidden"
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                {status === "loading"
-                  ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  : <><Send className="w-4 h-4" />انضم الآن</>}
+                <BorderBeam size={80} duration={4} borderWidth={2} colorFrom="#000000" colorTo="#888888" />
+                <Send className="w-5 h-5" />
+                انضم الآن
               </motion.button>
-            </form>
+            </div>
           ) : (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
               className="relative max-w-lg mx-auto p-8 rounded-2xl border border-[#FFFFFF]/30 bg-[#FFFFFF]/8 backdrop-blur-sm overflow-hidden shadow-[0_8px_32px_rgba(255,255,255,0.1)]">
               <BorderBeam colorFrom="#FFFFFF" colorTo="#CCCCCC" duration={6} />
               <div className="text-4xl mb-4">🎉</div>
-              <p className="text-xl font-bold t-text-primary mb-2">تم التسجيل بنجاح!</p>
-              <p className="t-text-secondary text-sm">سنرسل لك رابط الوصول المبكر قريباً على بريدك الإلكتروني.</p>
+              <p className="text-xl font-bold t-text-primary mb-2">مرحباً بك في مجتمعنا!</p>
+              <p className="t-text-secondary text-sm">شكراً لانضمامك إلينا.</p>
             </motion.div>
           )}
         </motion.div>
-        <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-          transition={{ delay: 0.5 }} className="mt-6 t-text-muted text-xs tracking-wide">
-          🔒 بياناتك محمية · لا مشاركة مع طرف ثالث · إلغاء في أي وقت
-        </motion.p>
       </div>
     </section>
   );
