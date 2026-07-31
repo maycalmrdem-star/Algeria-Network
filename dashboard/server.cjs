@@ -66,7 +66,7 @@ app.locals.include = ejs.include;
 passport.use(new DiscordStrategy({
     clientID: config.clientId,
     clientSecret: config.clientSecret,
-    callbackURL: 'http://localhost:3000/auth/discord/callback',
+    callbackURL: process.env.CALLBACK_URL || 'http://localhost:3000/auth/discord/callback',
     scope: ['identify', 'guilds']
 }, (accessToken, refreshToken, profile, done) => {
     done(null, profile);
