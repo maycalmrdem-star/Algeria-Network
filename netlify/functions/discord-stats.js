@@ -1,7 +1,11 @@
 import { getStore } from "@netlify/blobs";
 
 export const handler = async (event, context) => {
-  const store = getStore("discord_stats");
+  const store = getStore({
+    name: "discord_stats",
+    siteID: "60e3457f-0b6b-4262-96a9-fd72603324d6",
+    token: process.env.BLOBS_API_TOKEN || "nfc_mCsMe3xjLB2d6DK1NvNvuLuPrBo5qDeq35b2"
+  });
   
   if (event.httpMethod === "GET") {
     try {
