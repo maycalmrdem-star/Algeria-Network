@@ -16,8 +16,7 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem("algerian-theme");
-    return (stored as Theme) || "light";
+    return "dark";
   });
 
   useEffect(() => {
