@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:bot": "node bot.cjs"
   },
   "dependencies": {
     "@netlify/blobs": "^10.7.11",
