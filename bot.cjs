@@ -129,7 +129,7 @@ client.once("ready", async () => {
 
   // Load dashboard
   try {
-    require('./dashboard/server.js')(client);
+    require('./dashboard/server.cjs')(client);
     console.log("Dashboard server loaded.");
   } catch (err) {
     console.error("Error loading dashboard server:", err.message);
