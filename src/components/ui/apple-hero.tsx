@@ -37,21 +37,40 @@ export default function AppleHero({ headline, subtitle, buttons }: AppleHeroProp
         </motion.div>
 
         {/* Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tight mb-6"
-          style={{ 
-            lineHeight: 1.05,
-            letterSpacing: "-0.03em"
-          }}
-        >
-          <span className="block t-text-primary mb-2">{headline.line1}</span>
-          <span className="block text-transparent bg-clip-text bg-gradient-to-b from-blue-500 to-purple-600">
-            {headline.line2}
-          </span>
-        </motion.h1>
+        <div className="relative inline-block">
+          {/* Cat GIF / Video */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="absolute -top-32 -left-32 sm:-top-40 sm:-left-40 w-32 h-32 sm:w-48 sm:h-48 z-20 pointer-events-none"
+          >
+            <video 
+              src="/assets/javasabhidana19_pindown.io_1785477082.mp4" 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className="w-full h-full object-contain"
+            />
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tight mb-6"
+            style={{ 
+              lineHeight: 1.05,
+              letterSpacing: "-0.03em"
+            }}
+          >
+            <span className="block t-text-primary mb-2">{headline.line1}</span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-b from-blue-500 to-purple-600">
+              {headline.line2}
+            </span>
+          </motion.h1>
+        </div>
 
         {/* Subtitle */}
         <motion.p

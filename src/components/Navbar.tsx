@@ -72,32 +72,6 @@ export const Navbar = () => {
 
         {/* Right controls */}
         <div className="flex items-center gap-3">
-          {/* Theme toggle */}
-          <motion.button
-            onClick={toggleTheme}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 border"
-            style={{
-              background: "var(--bg-card)",
-              borderColor: "var(--border)",
-              color: "var(--text-secondary)",
-            }}
-            title={isLight ? "تبديل إلى الوضع الداكن" : "تبديل إلى الوضع الفاتح"}
-          >
-            <AnimatePresence mode="wait">
-              {isLight ? (
-                <motion.div key="moon" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                  <Moon className="w-4 h-4" />
-                </motion.div>
-              ) : (
-                <motion.div key="sun" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                  <Sun className="w-4 h-4" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.button>
-
           {/* CTA */}
           <a
             href="https://discord.gg/34fqkXH6ts"
