@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, KeyRound, Lock, LogOut, Plus, Trash2, Save, LayoutDashboard, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { EventItem } from '../components/EventsSection';
-
+import { BotConfigTabs } from '../components/admin/BotConfigTabs';
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -13,6 +13,7 @@ export function AdminDashboard() {
   
   const [events, setEvents] = useState<EventItem[]>([]);
   const [activeVoiceCount, setActiveVoiceCount] = useState<number>(0);
+  const [activeSection, setActiveSection] = useState<'events' | 'bot'>('events');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -236,7 +237,24 @@ export function AdminDashboard() {
           </div>
         </header>
 
-        <div className="mb-6 flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10">
+        <div className="flex gap-4 mb-8">
+          <button 
+            onClick={() => setActiveSection('events')}
+            className={`px-6 py-3 rounded-xl font-bold transition ${activeSection === 'events' ? 'bg-[#5865F2] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+          >
+            إدارة الفعاليات
+          </button>
+          <button 
+            onClick={() => setActiveSection('bot')}
+            className={`px-6 py-3 rounded-xl font-bold transition ${activeSection === 'bot' ? 'bg-[#5865F2] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+          >
+            إعدادات البوت (الحماية، التذاكر...)
+          </button>
+        </div>
+
+        {activeSection === 'events' ? (
+          <>
+            <div className="mb-6 flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10">
           <div>
             <h2 className="text-xl font-bold text-white">الفعاليات الحالية ({events.length})</h2>
             <p className="text-sm text-gray-400 mt-1 flex items-center gap-2">
@@ -335,6 +353,10 @@ export function AdminDashboard() {
             </div>
           )}
         </div>
+        </>
+        ) : (
+          <BotConfigTabs password={password} pin={pin} />
+        )}
       </div>
     </div>
   );
