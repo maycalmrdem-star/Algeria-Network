@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, KeyRound, Lock, LogOut, Plus, Trash2, Save, LayoutDashboard, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ShieldAlert, KeyRound, Lock, Plus, Trash2, Save, Menu } from 'lucide-react';
 import type { EventItem } from '../components/EventsSection';
-import { BotConfigTabs } from '../components/admin/BotConfigTabs';
+import { ProBotSidebar } from '../components/admin/ProBotSidebar';
+import { DashboardOverview } from '../components/admin/DashboardOverview';
+import { BotConfigSection } from '../components/admin/BotConfigSection';
+
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar toggle
   
   const [events, setEvents] = useState<EventItem[]>([]);
   const [activeVoiceCount, setActiveVoiceCount] = useState<number>(0);
-  const [activeSection, setActiveSection] = useState<'events' | 'bot'>('events');
-  const navigate = useNavigate();
+  
+  const [activeSection, setActiveSection] = useState<string>('overview');
 
   useEffect(() => {
-    // Check if previously authenticated in this session
     const storedAuth = sessionStorage.getItem('admin_auth');
     if (storedAuth) {
       const auth = JSON.parse(storedAuth);
@@ -124,50 +126,45 @@ export function AdminDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black p-6 relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
-        </div>
-
+      <div className="min-h-screen flex items-center justify-center bg-[#36393e] p-6 relative overflow-hidden">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-md relative z-10"
         >
-          <div className="bg-[#111111]/80 backdrop-blur-xl border border-red-500/20 p-8 rounded-3xl shadow-2xl">
+          <div className="bg-[#2f3136] border border-white/5 p-8 rounded-2xl shadow-2xl">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center border border-red-500/20">
-                <ShieldAlert className="w-8 h-8 text-red-500" />
+              <div className="w-20 h-20 bg-[#1e2124] rounded-full flex items-center justify-center shadow-inner overflow-hidden border border-white/5">
+                 <img src="/server-icon.gif" alt="Server Icon" className="w-full h-full object-cover" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-center text-white mb-2">جدار الحماية الإداري</h2>
-            <p className="text-gray-400 text-center text-sm mb-8">يُرجى إدخال مفاتيح الوصول السرية للمتابعة</p>
+            <h2 className="text-2xl font-bold text-center text-white mb-2">تسجيل الدخول للإدارة</h2>
+            <p className="text-gray-400 text-center text-sm mb-8">أدخل المفاتيح السرية لـ Algeria Network</p>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">كلمة المرور السرية</label>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">كلمة المرور</label>
                 <div className="relative">
                   <KeyRound className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-black/50 border border-gray-700 text-white rounded-xl py-3 pr-10 pl-4 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                    className="w-full bg-[#1e2124] border border-white/5 text-white rounded-lg py-3 pr-10 pl-4 focus:border-[#5865F2] outline-none transition-all"
                     placeholder="••••••••"
                     required
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">الرقم السري (PIN)</label>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">الرقم السري (PIN)</label>
                 <div className="relative">
                   <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <input
                     type="password"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
-                    className="w-full bg-black/50 border border-gray-700 text-white rounded-xl py-3 pr-10 pl-4 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all tracking-[0.5em] font-mono"
+                    className="w-full bg-[#1e2124] border border-white/5 text-white rounded-lg py-3 pr-10 pl-4 focus:border-[#5865F2] outline-none transition-all tracking-[0.5em] font-mono"
                     placeholder="••••"
                     maxLength={4}
                     required
@@ -181,7 +178,7 @@ export function AdminDashboard() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="text-red-500 text-sm text-center"
+                    className="text-red-400 text-sm font-medium mt-2"
                   >
                     {error}
                   </motion.p>
@@ -191,7 +188,7 @@ export function AdminDashboard() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition-colors disabled:opacity-50 mt-4"
+                className="w-full bg-[#5865F2] hover:bg-[#4752c4] text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 mt-6 shadow-md"
               >
                 {loading ? 'جاري التحقق...' : 'دخول'}
               </button>
@@ -202,161 +199,179 @@ export function AdminDashboard() {
     );
   }
 
+  const renderSectionHeader = () => {
+    let title = '';
+    switch(activeSection) {
+      case 'overview': title = 'Vue d\'ensemble'; break;
+      case 'events': title = 'إدارة الفعاليات'; break;
+      case 'automod': title = 'الحماية (AutoMod)'; break;
+      case 'welcome': title = 'الترحيب'; break;
+      case 'tickets': title = 'نظام التذاكر'; break;
+      case 'commands': title = 'الأوامر المخصصة'; break;
+      default: title = 'Dashboard';
+    }
+
+    return (
+      <header className="bg-[#36393e] border-b border-white/5 p-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button 
+            className="md:hidden text-gray-400 hover:text-white"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <Menu size={24} />
+          </button>
+          <h1 className="text-xl font-bold text-white">{title}</h1>
+        </div>
+      </header>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-10 relative">
-      <div className="max-w-6xl mx-auto relative z-10">
-        <header className="flex flex-col md:flex-row justify-between items-center mb-10 pb-6 border-b border-white/10 gap-4">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/')} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition">
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <LayoutDashboard className="w-8 h-8 text-[#5865F2]" />
-                لوحة التحكم
-              </h1>
-              <p className="text-gray-400 mt-1">إدارة فعاليات الموقع</p>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={() => saveEvents(events)}
-              disabled={loading}
-              className="flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] px-5 py-2.5 rounded-xl font-semibold transition"
-            >
-              <Save className="w-4 h-4" />
-              {loading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 px-5 py-2.5 rounded-xl font-semibold transition"
-            >
-              <LogOut className="w-4 h-4" />
-              خروج
-            </button>
-          </div>
-        </header>
+    <div className="flex h-screen bg-[#36393e] overflow-hidden dir-rtl">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar Content */}
+      <div className={`fixed md:static inset-y-0 right-0 z-30 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
+         <ProBotSidebar activeSection={activeSection} setActiveSection={(s) => { setActiveSection(s); setSidebarOpen(false); }} onLogout={handleLogout} />
+      </div>
 
-        <div className="flex gap-4 mb-8">
-          <button 
-            onClick={() => setActiveSection('events')}
-            className={`px-6 py-3 rounded-xl font-bold transition ${activeSection === 'events' ? 'bg-[#5865F2] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
-          >
-            إدارة الفعاليات
-          </button>
-          <button 
-            onClick={() => setActiveSection('bot')}
-            className={`px-6 py-3 rounded-xl font-bold transition ${activeSection === 'bot' ? 'bg-[#5865F2] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
-          >
-            إعدادات البوت (الحماية، التذاكر...)
-          </button>
-        </div>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden text-right">
+        {renderSectionHeader()}
+        
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+          <div className="max-w-5xl mx-auto">
+            
+            {activeSection === 'overview' && (
+              <DashboardOverview setActiveSection={setActiveSection} />
+            )}
 
-        {activeSection === 'events' ? (
-          <>
-            <div className="mb-6 flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10">
-          <div>
-            <h2 className="text-xl font-bold text-white">الفعاليات الحالية ({events.length})</h2>
-            <p className="text-sm text-gray-400 mt-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              المتواجدون في الرومات الصوتية الآن: <span className="font-bold text-white">{activeVoiceCount}</span>
-            </p>
-          </div>
-          <button 
-            onClick={addEvent}
-            className="flex items-center gap-2 bg-[#5865F2]/20 text-[#5865F2] hover:bg-[#5865F2]/30 px-4 py-2 rounded-xl transition font-semibold"
-          >
-            <Plus className="w-4 h-4" />
-            إضافة فعالية
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <AnimatePresence>
-            {events.map((ev) => (
-              <motion.div 
-                key={ev.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#111111] border border-white/10 p-6 rounded-2xl relative group"
-              >
-                <button 
-                  onClick={() => removeEvent(ev.id)}
-                  className="absolute top-4 right-4 p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition opacity-0 group-hover:opacity-100"
-                  title="حذف الفعالية"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-
-                <div className="space-y-4">
+            {activeSection === 'events' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div className="flex justify-between items-center bg-[#2f3136] p-5 rounded-xl border border-white/5 shadow-sm">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">عنوان الفعالية</label>
-                    <input 
-                      type="text" 
-                      value={ev.title} 
-                      onChange={(e) => updateEvent(ev.id, 'title', e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none"
-                    />
+                    <h2 className="text-xl font-bold text-white">الفعاليات الحالية ({events.length})</h2>
+                    <p className="text-sm text-gray-400 mt-1 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#3ba55d] animate-pulse"></span>
+                      المتواجدون في الرومات الصوتية الآن: <span className="font-bold text-white">{activeVoiceCount}</span>
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">وصف الفعالية</label>
-                    <textarea 
-                      value={ev.description} 
-                      onChange={(e) => updateEvent(ev.id, 'description', e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none h-20 resize-none"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">الوقت والتاريخ</label>
-                      <input 
-                        type="text" 
-                        value={ev.time} 
-                        onChange={(e) => updateEvent(ev.id, 'time', e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none"
-                        placeholder="مثال: اليوم 20:00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">حالة الفعالية</label>
-                      <select 
-                        value={ev.status}
-                        onChange={(e) => updateEvent(ev.id, 'status', e.target.value as EventItem['status'])}
-                        className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none"
-                      >
-                        <option value="upcoming">قريباً</option>
-                        <option value="live">مباشر الآن</option>
-                        <option value="ended">انتهت</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">رابط الصورة (اختياري)</label>
-                    <input 
-                      type="text" 
-                      value={ev.imageUrl} 
-                      onChange={(e) => updateEvent(ev.id, 'imageUrl', e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none text-left font-mono text-sm"
-                      placeholder="https://example.com/image.png"
-                      dir="ltr"
-                    />
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={addEvent}
+                      className="flex items-center gap-2 bg-[#1e2124] text-white hover:bg-white/5 px-4 py-2 rounded-lg transition font-semibold border border-white/10"
+                    >
+                      <Plus className="w-4 h-4" />
+                      إضافة فعالية
+                    </button>
+                    <button 
+                      onClick={() => saveEvents(events)}
+                      disabled={loading}
+                      className="flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752c4] text-white px-4 py-2 rounded-lg transition font-semibold"
+                    >
+                      <Save className="w-4 h-4" />
+                      {loading ? 'جاري الحفظ...' : 'حفظ'}
+                    </button>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <AnimatePresence>
+                    {events.map((ev) => (
+                      <motion.div 
+                        key={ev.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-[#2f3136] border border-white/5 p-6 rounded-xl relative group shadow-sm hover:border-[#5865F2]/50 transition-colors"
+                      >
+                        <button 
+                          onClick={() => removeEvent(ev.id)}
+                          className="absolute top-4 left-4 p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition opacity-0 group-hover:opacity-100"
+                          title="حذف الفعالية"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-400 mb-1">عنوان الفعالية</label>
+                            <input 
+                              type="text" 
+                              value={ev.title} 
+                              onChange={(e) => updateEvent(ev.id, 'title', e.target.value)}
+                              className="w-full bg-[#1e2124] border border-white/5 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-400 mb-1">وصف الفعالية</label>
+                            <textarea 
+                              value={ev.description} 
+                              onChange={(e) => updateEvent(ev.id, 'description', e.target.value)}
+                              className="w-full bg-[#1e2124] border border-white/5 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none h-20 resize-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-400 mb-1">الوقت والتاريخ</label>
+                              <input 
+                                type="text" 
+                                value={ev.time} 
+                                onChange={(e) => updateEvent(ev.id, 'time', e.target.value)}
+                                className="w-full bg-[#1e2124] border border-white/5 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none"
+                                placeholder="مثال: اليوم 20:00"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-400 mb-1">حالة الفعالية</label>
+                              <select 
+                                value={ev.status}
+                                onChange={(e) => updateEvent(ev.id, 'status', e.target.value as EventItem['status'])}
+                                className="w-full bg-[#1e2124] border border-white/5 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none"
+                              >
+                                <option value="upcoming">قريباً</option>
+                                <option value="live">مباشر الآن</option>
+                                <option value="ended">انتهت</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-400 mb-1">رابط الصورة (اختياري)</label>
+                            <input 
+                              type="text" 
+                              value={ev.imageUrl} 
+                              onChange={(e) => updateEvent(ev.id, 'imageUrl', e.target.value)}
+                              className="w-full bg-[#1e2124] border border-white/5 rounded-lg px-3 py-2 text-white focus:border-[#5865F2] outline-none text-left font-mono text-sm"
+                              placeholder="https://example.com/image.png"
+                              dir="ltr"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  {events.length === 0 && (
+                    <div className="col-span-1 md:col-span-2 text-center py-20 border-2 border-dashed border-white/10 rounded-xl text-gray-500 bg-[#2f3136]/50">
+                      لم يتم إضافة أي فعاليات بعد.
+                    </div>
+                  )}
+                </div>
               </motion.div>
-            ))}
-          </AnimatePresence>
-          {events.length === 0 && (
-            <div className="col-span-1 md:col-span-2 text-center py-20 border border-dashed border-white/10 rounded-2xl text-gray-500">
-              لم يتم إضافة أي فعاليات بعد. انقر على "إضافة فعالية" للبدء.
-            </div>
-          )}
-        </div>
-        </>
-        ) : (
-          <BotConfigTabs password={password} pin={pin} />
-        )}
+            )}
+
+            {/* Render BotConfigSection for other tabs */}
+            {!['overview', 'events'].includes(activeSection) && (
+              <BotConfigSection activeSection={activeSection} password={password} pin={pin} />
+            )}
+            
+          </div>
+        </main>
       </div>
     </div>
   );
