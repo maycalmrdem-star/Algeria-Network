@@ -4,6 +4,27 @@ const TicketConfig = require('../../database/models/TicketConfig');
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
+        if (interaction.isChatInputCommand()) {
+            const command = interaction.client.commands.get(interaction.commandName);
+
+            if (!command) {
+                console.error(`No command matching ${interaction.commandName} was found.`);
+                return;
+            }
+
+            try {
+                await command.execute(interaction);
+            } catch (error) {
+                console.error(error);
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp({ content: 'حدث خطأ أثناء تنفيذ هذا الأمر!', ephemeral: true });
+                } else {
+                    await interaction.reply({ content: 'حدث خطأ أثناء تنفيذ هذا الأمر!', ephemeral: true });
+                }
+            }
+            return;
+        }
+
         if (!interaction.isButton()) return;
 
         if (interaction.customId === 'create_ticket') {

@@ -1,36 +1,55 @@
-const { PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const ModerationLog = require('../../../database/models/ModerationLog');
 
 module.exports = {
-    name: 'untimeout',
-    description: 'Removes timeout from a user',
-    usage: '!untimeout <user> [reason]',
-    permissions: [PermissionsBitField.Flags.ModerateMembers],
-    run: async (Client, Message, Args) => {
-        if (!Args[0]) {
-            return Message.reply('Please mention a user or provide their ID to remove timeout.');
+    data: new SlashCommandBuilder()
+        .setName('untimeout')
+        .setDescription('Removes timeout from a user (إزالة التايم أوت)')
+        .addUserOption(option => 
+            option.setName('user')
+                .setDescription('The user to untimeout (العضو)')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('reason')
+                .setDescription('Reason for removing timeout (السبب)')
+                .setRequired(false)),
+    
+    async execute(interaction) {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+            return interaction.reply({ content: "❌ عذراً، لا تمتلك صلاحية إدارة الأعضاء.", ephemeral: true });
         }
 
-        const member = Message.mentions.members.first() || Message.guild.members.cache.get(Args[0]);
+        const targetUser = interaction.options.getUser('user');
+        const reason = interaction.options.getString('reason') || 'No reason provided';
+        const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+
         if (!member) {
-            return Message.reply('Unable to find the specified user.');
+            return interaction.reply({ content: "❌ لم أتمكن من العثور على هذا العضو في السيرفر.", ephemeral: true });
         }
 
-        if (member.id === Message.author.id) {
-            return Message.reply('You cannot remove timeout from yourself.');
+        if (!member.moderatable) {
+            return interaction.reply({ content: "❌ لا أستطيع إزالة التايم أوت عن هذا العضو.", ephemeral: true });
         }
 
-        if (member.roles.highest.position >= Message.member.roles.highest.position) {
-            return Message.reply('You cannot remove timeout from this user due to role hierarchy.');
-        }
-
-        const reason = Args.slice(1).join(' ') || 'No reason provided';
+        await interaction.deferReply();
 
         try {
             await member.timeout(null, reason);
-            Message.channel.send(`Successfully removed timeout from ${member.user.tag}. Reason: ${reason}`);
+            
+            await ModerationLog.create({
+                serverId: interaction.guild.id,
+                targetId: member.id,
+                targetName: targetUser.tag,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.tag,
+                action: 'untimeout',
+                reason: reason
+            });
+
+            await interaction.editReply(`✅ تم إزالة التايم أوت عن **${targetUser.tag}** بنجاح.`);
         } catch (error) {
-            console.error('Error removing timeout from member:', error);
-            Message.reply('An error occurred while trying to remove timeout from the member.');
+            console.error(error);
+            await interaction.editReply(`❌ حدث خطأ: ${error.message}`);
         }
     }
 };

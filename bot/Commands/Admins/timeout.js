@@ -1,54 +1,65 @@
-const { PermissionsBitField } = require('discord.js');
-const ms = require('ms');
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const ModerationLog = require('../../../database/models/ModerationLog');
 
 module.exports = {
-    name: 'timeout',
-    description: 'Timeout a user for a specified duration',
-    usage: '!timeout <user> <duration> [reason]',
-    permissions: [PermissionsBitField.Flags.ModerateMembers],
-    run: async (Client, Message, Args) => {
-        if (!Args[0] || !Args[1]) {
-            return Message.reply('Please provide a user and duration for the timeout.');
+    data: new SlashCommandBuilder()
+        .setName('timeout')
+        .setDescription('Times out a user in the server (إسكات عضو)')
+        .addUserOption(option => 
+            option.setName('user')
+                .setDescription('The user to timeout (العضو المراد إسكاته)')
+                .setRequired(true))
+        .addIntegerOption(option => 
+            option.setName('duration')
+                .setDescription('Duration in minutes (المدة بالدقائق)')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('reason')
+                .setDescription('Reason for the timeout (سبب الإسكات)')
+                .setRequired(false)),
+    
+    async execute(interaction) {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+            return interaction.reply({ content: "❌ عذراً، لا تمتلك صلاحية إدارة الأعضاء لإعطاء تايم أوت.", ephemeral: true });
         }
 
-        const member = Message.mentions.members.first() || Message.guild.members.cache.get(Args[0]);
+        const targetUser = interaction.options.getUser('user');
+        const durationMinutes = interaction.options.getInteger('duration');
+        const reason = interaction.options.getString('reason') || 'No reason provided';
+        const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+
         if (!member) {
-            return Message.reply('Unable to find the specified user.');
+            return interaction.reply({ content: "❌ لم أتمكن من العثور على هذا العضو في السيرفر.", ephemeral: true });
         }
 
-        if (member.id === Message.author.id) {
-            return Message.reply('You cannot timeout yourself.');
+        if (member.id === interaction.user.id) {
+            return interaction.reply({ content: "❌ لا يمكنك إعطاء تايم أوت لنفسك!", ephemeral: true });
         }
 
-        if (member.roles.highest.position >= Message.member.roles.highest.position) {
-            return Message.reply('You cannot timeout this user due to role hierarchy.');
+        if (!member.moderatable) {
+            return interaction.reply({ content: "❌ لا أستطيع إعطاء تايم أوت لهذا العضو. قد تكون رتبته أعلى من رتبتي.", ephemeral: true });
         }
 
-        const duration = ms(Args[1]);
-        if (!duration || isNaN(duration)) {
-            return Message.reply('Please provide a valid duration (e.g., 1h, 30m, 1d).');
-        }
-
-        const reason = Args.slice(2).join(' ') || 'No reason provided';
+        await interaction.deferReply();
 
         try {
-            await member.timeout(duration, reason);
-
-            const ModerationLog = require('../../../database/models/ModerationLog');
+            const durationMs = durationMinutes * 60 * 1000;
+            await member.timeout(durationMs, reason);
+            
             await ModerationLog.create({
-                serverId: Message.guild.id,
+                serverId: interaction.guild.id,
                 targetId: member.id,
-                targetName: member.user.tag,
-                moderatorId: Message.author.id,
-                moderatorName: Message.author.tag,
+                targetName: targetUser.tag,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.tag,
                 action: 'timeout',
-                reason: `${ms(duration, { long: true })} | ${reason}`
+                reason: `Duration: ${durationMinutes}m | ${reason}`
             });
 
-            Message.channel.send(`Successfully timed out ${member.user.tag} for ${ms(duration, { long: true })}. Reason: ${reason}`);
+            await interaction.editReply(`✅ تم إعطاء **${targetUser.tag}** تايم أوت لمدة ${durationMinutes} دقيقة. السبب: ${reason}`);
         } catch (error) {
-            console.error('Error timing out member:', error);
-            Message.reply('An error occurred while trying to timeout the member.');
+            console.error(error);
+            await interaction.editReply(`❌ حدث خطأ أثناء محاولة إعطاء التايم أوت: ${error.message}`);
         }
     }
 };

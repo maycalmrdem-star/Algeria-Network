@@ -1,23 +1,37 @@
-const { PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const ModerationLog = require('../../../database/models/ModerationLog');
 
 module.exports = {
-    name: 'unlock',
-    description: 'Unlocks a channel, allowing members to send messages',
-    usage: '!unlock [channel] [reason]',
-    permissions: [PermissionsBitField.Flags.ManageChannels],
-    run: async (Client, Message, Args) => {
-        const channel = Message.mentions.channels.first() || Message.channel;
-        const reason = Args.slice(1).join(' ') || 'No reason provided';
+    data: new SlashCommandBuilder()
+        .setName('unlock')
+        .setDescription('Unlocks the current channel (فتح الروم)'),
+    
+    async execute(interaction) {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
+            return interaction.reply({ content: "❌ عذراً، لا تمتلك صلاحية إدارة الرومات.", ephemeral: true });
+        }
+
+        await interaction.deferReply();
 
         try {
-            await channel.permissionOverwrites.edit(Message.guild.roles.everyone, {
+            await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
                 SendMessages: null
             });
+            
+            await ModerationLog.create({
+                serverId: interaction.guild.id,
+                targetId: interaction.channel.id,
+                targetName: interaction.channel.name,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.tag,
+                action: 'unlock',
+                reason: 'Channel Unlocked'
+            });
 
-            Message.channel.send(`🔓 Channel ${channel} has been unlocked. Reason: ${reason}`);
+            await interaction.editReply(`🔓 تم فتح الروم بنجاح.`);
         } catch (error) {
-            console.error('Error unlocking channel:', error);
-            Message.reply('An error occurred while trying to unlock the channel.');
+            console.error(error);
+            await interaction.editReply(`❌ حدث خطأ أثناء فتح الروم: ${error.message}`);
         }
     }
 };

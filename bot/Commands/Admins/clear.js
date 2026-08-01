@@ -1,34 +1,43 @@
-const { PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const ModerationLog = require('../../../database/models/ModerationLog');
 
 module.exports = {
-    name: 'clear',
-    description: 'Clears a specified number of messages from the channel',
-    usage: '!clear <number>',
-    permissions: [PermissionsBitField.Flags.ManageMessages],
-    run: async (Client, Message, Args) => {
-        if (!Args[0]) {
-            return Message.reply('Please specify the number of messages to clear.');
+    data: new SlashCommandBuilder()
+        .setName('clear')
+        .setDescription('Clears a specific amount of messages in the channel (مسح الرسائل)')
+        .addIntegerOption(option => 
+            option.setName('amount')
+                .setDescription('Number of messages to clear (between 1 and 100)')
+                .setRequired(true)
+                .setMinValue(1)
+                .setMaxValue(100)),
+    
+    async execute(interaction) {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+            return interaction.reply({ content: "❌ عذراً، لا تمتلك صلاحية إدارة الرسائل.", ephemeral: true });
         }
 
-        const amount = parseInt(Args[0]);
+        const amount = interaction.options.getInteger('amount');
 
-        if (isNaN(amount)) {
-            return Message.reply('Please provide a valid number.');
-        }
-
-        if (amount <= 0 || amount > 100) {
-            return Message.reply('Please provide a number between 1 and 100.');
-        }
+        await interaction.deferReply({ ephemeral: true });
 
         try {
-            const messages = await Message.channel.messages.fetch({ limit: amount });
-            await Message.channel.bulkDelete(messages, true);
+            const deleted = await interaction.channel.bulkDelete(amount, true);
+            
+            await ModerationLog.create({
+                serverId: interaction.guild.id,
+                targetId: interaction.channel.id,
+                targetName: interaction.channel.name,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.tag,
+                action: 'clear',
+                reason: `Cleared ${deleted.size} messages`
+            });
 
-            const reply = await Message.channel.send(`Successfully cleared ${amount} messages.`);
-            setTimeout(() => reply.delete(), 5000);
+            await interaction.editReply(`✅ تم مسح **${deleted.size}** رسالة بنجاح.`);
         } catch (error) {
-            console.error('Error clearing messages:', error);
-            Message.reply('An error occurred while trying to clear messages.');
+            console.error(error);
+            await interaction.editReply(`❌ حدث خطأ أثناء محاولة مسح الرسائل: ${error.message}`);
         }
     }
 };

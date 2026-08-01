@@ -9,10 +9,15 @@ const client = new Client({
     ],
 });
 
-client.on('ready', () => {
+client.on('ready', async () => {
     require('../dashboard/server.cjs')(client);
+    
+    // Deploy slash commands
+    const deployCommands = require('./deploy-commands');
+    await deployCommands(client.user.id);
 });
 
+client.commands = new Collection(); // For Slash commands
 client.Çɱɗ = new Collection()
 client.Çʍɗ = new Collection()
 client.Prefix = config.prefix

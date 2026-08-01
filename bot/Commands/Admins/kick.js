@@ -1,53 +1,59 @@
-const { PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const ModerationLog = require('../../../database/models/ModerationLog');
 
 module.exports = {
-    name: 'kick',
-    description: 'Kicks a member from the server',
-    usage: '!kick <user> [reason]',
-    permissions: [PermissionsBitField.Flags.KickMembers],
-    run: async (Client, Message, Args) => {
-        if (!Args[0]) {
-            return Message.reply('Please mention a user to kick.');
+    data: new SlashCommandBuilder()
+        .setName('kick')
+        .setDescription('Kicks a user from the server (طرد عضو)')
+        .addUserOption(option => 
+            option.setName('user')
+                .setDescription('The user to kick (العضو المراد طرده)')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('reason')
+                .setDescription('Reason for the kick (سبب الطرد)')
+                .setRequired(false)),
+    
+    async execute(interaction) {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
+            return interaction.reply({ content: "❌ عذراً، لا تمتلك صلاحية طرد الأعضاء.", ephemeral: true });
         }
 
-        const member = Message.mentions.members.first() || Message.guild.members.cache.get(Args[0]);
+        const targetUser = interaction.options.getUser('user');
+        const reason = interaction.options.getString('reason') || 'No reason provided';
+        const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
 
         if (!member) {
-            return Message.reply('Unable to find the specified user.');
+            return interaction.reply({ content: "❌ لم أتمكن من العثور على هذا العضو في السيرفر.", ephemeral: true });
         }
 
-        if (member.id === Message.author.id) {
-            return Message.reply('You cannot kick yourself.');
-        }
-
-        if (member.roles.highest.position >= Message.member.roles.highest.position) {
-            return Message.reply('You cannot kick this user due to role hierarchy.');
+        if (member.id === interaction.user.id) {
+            return interaction.reply({ content: "❌ لا يمكنك طرد نفسك!", ephemeral: true });
         }
 
         if (!member.kickable) {
-            return Message.reply('I cannot kick this user. Do I have the necessary permissions?');
+            return interaction.reply({ content: "❌ لا أستطيع طرد هذا العضو. قد تكون رتبته أعلى من رتبتي.", ephemeral: true });
         }
 
-        const reason = Args.slice(1).join(' ') || 'No reason provided';
+        await interaction.deferReply();
 
         try {
             await member.kick(reason);
-
-            const ModerationLog = require('../../../database/models/ModerationLog');
+            
             await ModerationLog.create({
-                serverId: Message.guild.id,
+                serverId: interaction.guild.id,
                 targetId: member.id,
-                targetName: member.user.tag,
-                moderatorId: Message.author.id,
-                moderatorName: Message.author.tag,
+                targetName: targetUser.tag,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.tag,
                 action: 'kick',
                 reason: reason
             });
 
-            Message.channel.send(`Successfully kicked ${member.user.tag} for reason: ${reason}`);
+            await interaction.editReply(`✅ تم طرد **${targetUser.tag}** بنجاح. السبب: ${reason}`);
         } catch (error) {
-            console.error('Error kicking member:', error);
-            Message.reply('An error occurred while trying to kick the member.');
+            console.error(error);
+            await interaction.editReply(`❌ حدث خطأ أثناء محاولة طرد العضو: ${error.message}`);
         }
     }
 };

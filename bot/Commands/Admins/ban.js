@@ -1,48 +1,59 @@
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const ModerationLog = require('../../../database/models/ModerationLog');
+
 module.exports = {
-    name: "ban",
-    aliases: ["banish", "remove"],
-    description: "Bans a user from the server",
-    usage: "!ban <user> [reason]",
-    permissions: ["BanMembers"],
-    cooldown: 5,
-    run: async (Client, Message, Args) => {
-        if (!Message.member.permissions.has("BanMembers")) {
-            return Message.reply("You don't have permission to use this command.");
+    data: new SlashCommandBuilder()
+        .setName('ban')
+        .setDescription('Bans a user from the server (حظر عضو)')
+        .addUserOption(option => 
+            option.setName('user')
+                .setDescription('The user to ban (العضو المراد حظره)')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('reason')
+                .setDescription('Reason for the ban (سبب الحظر)')
+                .setRequired(false)),
+    
+    async execute(interaction) {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+            return interaction.reply({ content: "❌ عذراً، لا تمتلك صلاحية حظر الأعضاء.", ephemeral: true });
         }
 
-        const member = Message.mentions.members.first() || Message.guild.members.cache.get(Args[0]);
+        const targetUser = interaction.options.getUser('user');
+        const reason = interaction.options.getString('reason') || 'No reason provided';
+        const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+
         if (!member) {
-            return Message.reply("Please mention a valid member or provide their ID.");
+            return interaction.reply({ content: "❌ لم أتمكن من العثور على هذا العضو في السيرفر.", ephemeral: true });
         }
 
-        if (member.id === Message.author.id) {
-            return Message.reply("You can't ban yourself!");
+        if (member.id === interaction.user.id) {
+            return interaction.reply({ content: "❌ لا يمكنك حظر نفسك!", ephemeral: true });
         }
 
         if (!member.bannable) {
-            return Message.reply("I can't ban this user. They may have a higher role than me or I don't have ban permissions.");
+            return interaction.reply({ content: "❌ لا أستطيع حظر هذا العضو. قد تكون رتبته أعلى من رتبتي.", ephemeral: true });
         }
 
-        let reason = Args.slice(1).join(' ');
-        if (!reason) reason = "No reason provided";
+        await interaction.deferReply();
 
-        await member.ban({ reason: reason })
-            .catch(error => {
-                Message.reply(`Sorry, I couldn't ban the user because: ${error}`);
-                return;
+        try {
+            await member.ban({ reason: reason });
+            
+            await ModerationLog.create({
+                serverId: interaction.guild.id,
+                targetId: member.id,
+                targetName: targetUser.tag,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.tag,
+                action: 'ban',
+                reason: reason
             });
 
-        const ModerationLog = require('../../../database/models/ModerationLog');
-        await ModerationLog.create({
-            serverId: Message.guild.id,
-            targetId: member.id,
-            targetName: member.user.tag,
-            moderatorId: Message.author.id,
-            moderatorName: Message.author.tag,
-            action: 'ban',
-            reason: reason
-        });
-
-        Message.reply(`${member.user.tag} has been banned by ${Message.author.tag} for reason: ${reason}`);
+            await interaction.editReply(`✅ تم حظر **${targetUser.tag}** بنجاح. السبب: ${reason}`);
+        } catch (error) {
+            console.error(error);
+            await interaction.editReply(`❌ حدث خطأ أثناء محاولة حظر العضو: ${error.message}`);
+        }
     }
-}
+};
