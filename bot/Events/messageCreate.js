@@ -13,24 +13,46 @@ const { getLevel, getXpForNextLevel } = require('../../utils/levelSystem');
 
 module.exports = async (Client, Message) => {
     if (Message.author.bot) return;
-    const userData = await User.findOne({ userId: Message.author.id });
-    if (userData) {
-        userData.xp += Math.floor(Math.random() * 10) + 15;
-        const currentLevel = getLevel(userData.xp);
-        const newLevel = getLevel(userData.xp);
+    // --- LEVELING SYSTEM ---
+    if (Message.guild) {
+        const LevelingConfig = require('../../database/models/LevelingConfig');
+        const levelConfig = await LevelingConfig.findOne({ serverId: Message.guild.id });
         
-        if (newLevel > currentLevel) {
-            Message.channel.send(`Congratulations ${Message.author}! You've reached level ${newLevel}!`);
+        if (levelConfig && levelConfig.enabled) {
+            // Check noXpChannels and noXpRoles
+            const isNoXpChannel = levelConfig.noXpChannels && levelConfig.noXpChannels.includes(Message.channel.id);
+            const isNoXpRole = levelConfig.noXpRoles && levelConfig.noXpRoles.some(r => Message.member.roles.cache.has(r));
+            
+            if (!isNoXpChannel && !isNoXpRole) {
+                const userData = await User.findOne({ userId: Message.author.id });
+                if (userData) {
+                    userData.xp += Math.floor(Math.random() * 10) + 15;
+                    const currentLevel = getLevel(userData.xp - 25); // Approximate check
+                    const newLevel = getLevel(userData.xp);
+                    
+                    if (newLevel > currentLevel) {
+                        let levelMsg = levelConfig.levelUpMessage || 'Congratulations [user], you leveled up to level [level]!';
+                        levelMsg = levelMsg.replace(/\[user\]/g, `<@${Message.author.id}>`).replace(/\[level\]/g, newLevel).replace(/\[server\]/g, Message.guild.name);
+                        
+                        if (levelConfig.levelUpChannelId) {
+                            const levelChannel = Message.guild.channels.cache.get(levelConfig.levelUpChannelId);
+                            if (levelChannel) levelChannel.send(levelMsg).catch(()=>{});
+                        } else {
+                            Message.channel.send(levelMsg).catch(()=>{});
+                        }
+                    }
+                    await userData.save();
+                } else {
+                    await User.create({
+                        userId: Message.author.id,
+                        username: Message.author.username,
+                        xp: Math.floor(Math.random() * 10) + 15
+                    });
+                }
+            }
         }
-        
-        await userData.save();
-    } else {
-        await User.create({
-            userId: Message.author.id,
-            username: Message.author.username,
-            xp: Math.floor(Math.random() * 10) + 15
-        });
     }
+    // --- END LEVELING ---
 
     // --- AUTO-MODERATION SYSTEM ---
     if (Message.guild) {
@@ -92,6 +114,21 @@ module.exports = async (Client, Message) => {
         }
     }
     // --- END AUTO-MODERATION ---
+
+    // --- AUTO RESPONDER ---
+    if (Message.guild) {
+        const AutoResponderConfig = require('../../database/models/AutoResponderConfig');
+        const arConfig = await AutoResponderConfig.findOne({ serverId: Message.guild.id });
+        if (arConfig && arConfig.enabled && arConfig.responses && arConfig.responses.length > 0) {
+            const matchedResponse = arConfig.responses.find(r => Message.content.toLowerCase() === r.trigger.toLowerCase());
+            if (matchedResponse) {
+                let replyText = matchedResponse.reply;
+                replyText = replyText.replace(/\[user\]/g, `<@${Message.author.id}>`).replace(/\[server\]/g, Message.guild.name);
+                return Message.channel.send(replyText).catch(()=>{});
+            }
+        }
+    }
+    // --- END AUTO RESPONDER ---
 
     const Prefix = Client.Prefix;
     let Args, CommandName;

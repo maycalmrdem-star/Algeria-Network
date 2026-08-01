@@ -15,31 +15,44 @@ const MENU_ITEMS = [
     category: 'GÉNÉRAL',
     items: [
       { id: 'overview', label: 'Vue d\'ensemble', icon: <Eye size={18} />, enabled: true },
-      { id: 'events', label: 'إدارة الفعاليات', icon: <Settings size={18} />, enabled: true },
-      { id: 'embeds', label: 'Messages en Embed', icon: <MessageSquare size={18} />, enabled: false },
+      { id: 'events', label: 'Paramètres du serveur', icon: <Settings size={18} />, enabled: true },
+      { id: 'embeds', label: 'Messages en Embed', icon: <MessageSquare size={18} />, enabled: true },
     ]
   },
   {
     category: 'PARAMÈTRES DES MODULES',
     items: [
-      { id: 'commands', label: 'أوامر مخصصة', icon: <Wrench size={18} />, enabled: true },
-      { id: 'welcome', label: 'الترحيب', icon: <Hand size={18} />, enabled: true },
-      { id: 'autoresponder', label: 'الرد التلقائي', icon: <Send size={18} />, enabled: false },
-      { id: 'leveling', label: 'نظام المستويات', icon: <TrendingUp size={18} />, enabled: false, premium: true },
-      { id: 'autoroles', label: 'الرتب التلقائية', icon: <Users size={18} />, enabled: false },
-      { id: 'colors', label: 'الألوان', icon: <Palette size={18} />, enabled: false },
-      { id: 'selfroles', label: 'رتب اختيارية', icon: <UserCheck size={18} />, enabled: false },
-      { id: 'starboard', label: 'نجمة', icon: <Star size={18} />, enabled: false },
-      { id: 'tempchannels', label: 'رومات مؤقتة', icon: <Clock size={18} />, enabled: false },
-      { id: 'templinks', label: 'رابط مؤقت', icon: <Link size={18} />, enabled: false, premium: true },
-      { id: 'statistics', label: 'إحصائيات', icon: <BarChart2 size={18} />, enabled: false, premium: true },
-      { id: 'tickets', label: 'نظام التذاكر', icon: <Ticket size={18} />, enabled: true, premium: true },
+      { id: 'commands', label: 'Utilitaire', icon: <Wrench size={18} />, enabled: true },
+      { id: 'welcome', label: 'Bienvenue et Au revoir', icon: <Hand size={18} />, enabled: true },
+      { id: 'autoresponder', label: 'Répondeur automatique', icon: <Send size={18} />, enabled: true },
+      { id: 'leveling', label: 'Système de niveau', icon: <TrendingUp size={18} />, enabled: true },
+      { id: 'autoroles', label: 'Rôles automatiques', icon: <Users size={18} />, enabled: true },
+      { id: 'colors', label: 'Couleurs', icon: <Palette size={18} />, enabled: true },
+      { id: 'selfroles', label: 'Rôles auto-assignables', icon: <UserCheck size={18} />, enabled: true },
+      { id: 'starboard', label: 'Tribord', icon: <Star size={18} />, enabled: true },
+      { id: 'tempchannels', label: 'Salons temporaires', icon: <Clock size={18} />, enabled: true },
+      { id: 'templinks', label: 'Lien temporaire', icon: <Link size={18} />, enabled: true },
+      { id: 'statistics', label: 'Statistics', icon: <BarChart2 size={18} />, enabled: true },
+      { id: 'tickets', label: 'Tickets', icon: <Ticket size={18} />, enabled: true },
     ]
   },
   {
     category: 'MODÉRATION',
     items: [
-      { id: 'automod', label: 'الحماية (AutoMod)', icon: <ShieldAlert size={18} />, enabled: true },
+      { id: 'moderation', label: 'Modération', icon: <ShieldAlert size={18} />, enabled: true },
+      { id: 'modlogs', label: 'Actions éffectués', icon: <ShieldAlert size={18} />, enabled: true },
+      { id: 'automod', label: 'Modération automatique', icon: <ShieldAlert size={18} />, enabled: true },
+      { id: 'antiraid', label: 'Anti-Raid', icon: <ShieldAlert size={18} />, enabled: true },
+      { id: 'vip', label: 'Protection VIP', icon: <ShieldAlert size={18} />, enabled: true },
+    ]
+  },
+  {
+    category: 'NOTIFICATIONS',
+    items: [
+      { id: 'twitch', label: 'Twitch', icon: <MessageSquare size={18} />, enabled: true },
+      { id: 'youtube', label: 'YouTube', icon: <MessageSquare size={18} />, enabled: true },
+      { id: 'kick', label: 'Kick', icon: <MessageSquare size={18} />, enabled: true },
+      { id: 'reddit', label: 'Reddit', icon: <MessageSquare size={18} />, enabled: true },
     ]
   }
 ];
@@ -79,11 +92,6 @@ export function ProBotSidebar({ activeSection, setActiveSection, onLogout }: Sid
                       {item.icon}
                     </span>
                     <span className="text-sm font-semibold truncate">{item.label}</span>
-                    {item.premium && (
-                      <span className="text-[9px] font-bold bg-[#ffb12f]/20 text-[#ffb12f] px-1.5 py-0.5 rounded ml-1">
-                        PREMIUM
-                      </span>
-                    )}
                   </div>
                   {item.enabled ? (
                     <div className="w-4 h-4 rounded-full bg-[#3ba55d] flex items-center justify-center">
