@@ -30,6 +30,9 @@ export function BotConfigTabs({ password, pin }: BotConfigTabsProps) {
     adminRoleId: ''
   });
 
+  const [commands, setCommands] = useState<any[]>([]);
+  const [newCommand, setNewCommand] = useState({ name: '', response: '' });
+
   useEffect(() => {
     fetchConfig();
   }, []);
@@ -51,6 +54,7 @@ export function BotConfigTabs({ password, pin }: BotConfigTabsProps) {
       }
       if (data.welcome) setWelcome(data.welcome);
       if (data.tickets) setTickets(data.tickets);
+      if (data.commands) setCommands(data.commands);
     } catch (err) {
       console.error("Error fetching config:", err);
     }
@@ -77,12 +81,23 @@ export function BotConfigTabs({ password, pin }: BotConfigTabsProps) {
         body: JSON.stringify({ type, data: payload })
       });
       
-      if (res.ok) alert('تم الحفظ بنجاح!');
-      else alert('فشل الحفظ!');
+      if (res.ok) {
+        if (type !== 'delete_command') alert('تم الحفظ بنجاح!');
+        if (type === 'add_command' || type === 'delete_command') {
+          fetchConfig(); // refresh commands list
+          setNewCommand({ name: '', response: '' });
+        }
+      } else alert('فشل الحفظ!');
     } catch (err) {
       alert('خطأ في الاتصال');
     }
     setLoading(false);
+  };
+
+  const deleteCommand = (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذا الأمر؟')) {
+      saveConfig('delete_command', { commandId: id });
+    }
   };
 
   return (
@@ -91,6 +106,7 @@ export function BotConfigTabs({ password, pin }: BotConfigTabsProps) {
         <TabButton active={activeTab === 'automod'} onClick={() => setActiveTab('automod')} icon={<Shield size={18} />} label="الحماية (AutoMod)" />
         <TabButton active={activeTab === 'welcome'} onClick={() => setActiveTab('welcome')} icon={<MessageSquare size={18} />} label="الترحيب (Welcome)" />
         <TabButton active={activeTab === 'tickets'} onClick={() => setActiveTab('tickets')} icon={<Ticket size={18} />} label="التذاكر (Tickets)" />
+        <TabButton active={activeTab === 'commands'} onClick={() => setActiveTab('commands')} icon={<Hash size={18} />} label="الأوامر المخصصة" />
       </div>
 
       <div className="p-6">
@@ -146,6 +162,51 @@ export function BotConfigTabs({ password, pin }: BotConfigTabsProps) {
             <Input label="أيدي الكاتيجوري (Category ID) لفتح التذاكر فيه" value={tickets.categoryId} onChange={(e: any) => setTickets({...tickets, categoryId: e.target.value})} />
             <Input label="أيدي رتبة الدعم الفني (Support Role ID)" value={tickets.adminRoleId} onChange={(e: any) => setTickets({...tickets, adminRoleId: e.target.value})} />
             <SaveButton loading={loading} onClick={() => saveConfig('tickets', tickets)} />
+          </motion.div>
+        )}
+
+        {activeTab === 'commands' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <h3 className="text-xl font-bold text-white mb-4">الأوامر المخصصة (Custom Commands)</h3>
+            
+            <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-4">
+              <h4 className="font-semibold text-white">إضافة أمر جديد</h4>
+              <Input label="اسم الأمر (بدون مسافات)" value={newCommand.name} onChange={(e: any) => setNewCommand({...newCommand, name: e.target.value})} dir="ltr" />
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">رد البوت</label>
+                <textarea 
+                  value={newCommand.response}
+                  onChange={(e: any) => setNewCommand({...newCommand, response: e.target.value})}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white h-24"
+                />
+              </div>
+              <button 
+                onClick={() => saveConfig('add_command', { commandName: newCommand.name, response: newCommand.response })}
+                disabled={loading || !newCommand.name || !newCommand.response}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-xl font-bold transition disabled:opacity-50"
+              >
+                إضافة الأمر
+              </button>
+            </div>
+
+            <div className="space-y-3 mt-6">
+              <h4 className="font-semibold text-white">الأوامر الحالية ({commands.length})</h4>
+              {commands.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">لا توجد أوامر مخصصة حالياً.</p>
+              ) : (
+                commands.map((cmd, i) => (
+                  <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div>
+                      <span className="font-bold text-[#5865F2]">/{cmd.commandName}</span>
+                      <p className="text-sm text-gray-400 mt-1 line-clamp-1">{cmd.response}</p>
+                    </div>
+                    <button onClick={() => deleteCommand(cmd._id)} className="text-red-500 hover:bg-red-500/20 p-2 rounded-lg transition">
+                      حذف
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </motion.div>
         )}
       </div>

@@ -32,6 +32,15 @@ const TicketSchema = new mongoose.Schema({
 });
 const TicketConfig = mongoose.models.TicketConfig || mongoose.model('TicketConfig', TicketSchema);
 
+const CustomCommandSchema = new mongoose.Schema({
+    serverId: String,
+    commandName: String,
+    response: String,
+    createdAt: { type: Date, default: Date.now }
+});
+// Only index if not already created to prevent strict mode issues on serverless functions.
+const CustomCommand = mongoose.models.CustomCommand || mongoose.model('CustomCommand', CustomCommandSchema);
+
 let isConnected = false;
 
 async function connectToDatabase() {
@@ -69,11 +78,12 @@ export const handler = async (event) => {
             const automod = await AutoModConfig.findOne({ serverId }) || {};
             const welcome = await WelcomeConfig.findOne({ serverId }) || {};
             const tickets = await TicketConfig.findOne({ serverId }) || {};
+            const commands = await CustomCommand.find({ serverId }).lean() || [];
 
             return {
                 statusCode: 200,
                 headers: HEADERS,
-                body: JSON.stringify({ automod, welcome, tickets }),
+                body: JSON.stringify({ automod, welcome, tickets, commands }),
             };
         }
 
@@ -87,6 +97,15 @@ export const handler = async (event) => {
                 await WelcomeConfig.findOneAndUpdate({ serverId }, data, { upsert: true });
             } else if (type === 'tickets') {
                 await TicketConfig.findOneAndUpdate({ serverId }, data, { upsert: true });
+            } else if (type === 'add_command') {
+                const cmd = new CustomCommand({
+                    serverId,
+                    commandName: data.commandName.toLowerCase(),
+                    response: data.response
+                });
+                await cmd.save();
+            } else if (type === 'delete_command') {
+                await CustomCommand.findByIdAndDelete(data.commandId);
             }
 
             return {
