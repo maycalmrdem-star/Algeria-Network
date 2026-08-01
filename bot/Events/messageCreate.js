@@ -32,6 +32,67 @@ module.exports = async (Client, Message) => {
         });
     }
 
+    // --- AUTO-MODERATION SYSTEM ---
+    if (Message.guild) {
+        const AutoModConfig = require('../../database/models/AutoModConfig');
+        const automod = await AutoModConfig.findOne({ serverId: Message.guild.id });
+        
+        if (automod) {
+            // Check Anti-Links
+            if (automod.antiLinks) {
+                const linkRegex = /(https?:\/\/[^\s]+)/g;
+                if (linkRegex.test(Message.content)) {
+                    await Message.delete().catch(() => {});
+                    return Message.channel.send(`<@${Message.author.id}>، يُمنع إرسال الروابط في هذا السيرفر!`).then(m => {
+                        setTimeout(() => m.delete().catch(()=> {}), 5000);
+                    });
+                }
+            }
+
+            // Check Anti-Bad Words
+            if (automod.antiBadWords && automod.badWordsList && automod.badWordsList.length > 0) {
+                const containsBadWord = automod.badWordsList.some(word => Message.content.toLowerCase().includes(word.toLowerCase()));
+                if (containsBadWord) {
+                    await Message.delete().catch(() => {});
+                    return Message.channel.send(`<@${Message.author.id}>، يُرجى احترام القوانين وعدم استخدام كلمات مسيئة!`).then(m => {
+                        setTimeout(() => m.delete().catch(()=> {}), 5000);
+                    });
+                }
+            }
+
+            // Check Anti-Spam
+            if (automod.antiSpam) {
+                if (!Client.spamCache) Client.spamCache = new Map();
+                const cacheKey = `${Message.guild.id}-${Message.author.id}`;
+                
+                let userData = Client.spamCache.get(cacheKey);
+                if (!userData) {
+                    userData = { count: 1, lastMessageTime: Date.now() };
+                    Client.spamCache.set(cacheKey, userData);
+                } else {
+                    const timeDifference = Date.now() - userData.lastMessageTime;
+                    
+                    if (timeDifference < 5000) { // 5 seconds window
+                        userData.count += 1;
+                        if (userData.count >= 5) { // 5 messages in 5 seconds = spam
+                            await Message.delete().catch(() => {});
+                            Client.spamCache.delete(cacheKey); // Reset after action
+                            return Message.channel.send(`<@${Message.author.id}>، يُرجى التوقف عن السبام (تكرار الرسائل)!`).then(m => {
+                                setTimeout(() => m.delete().catch(()=> {}), 5000);
+                            });
+                        }
+                    } else {
+                        userData.count = 1; // Reset if outside window
+                    }
+                    
+                    userData.lastMessageTime = Date.now();
+                    Client.spamCache.set(cacheKey, userData);
+                }
+            }
+        }
+    }
+    // --- END AUTO-MODERATION ---
+
     const Prefix = Client.Prefix;
     let Args, CommandName;
 
@@ -56,7 +117,20 @@ module.exports = async (Client, Message) => {
         Cmds = Client.Çɱɗ.get(CommandName) || Client.Çɱɗ.find(cmd => cmd.aliases && cmd.aliases.includes(CommandName));
     }
 
-    if (!Cmds) return;
+    if (!Cmds) {
+        // Check for Custom Commands
+        const CustomCommand = require('../../database/models/CustomCommand');
+        const customCmd = await CustomCommand.findOne({
+            serverId: Message.guild.id,
+            commandName: CommandName
+        });
+
+        if (customCmd) {
+            return Message.channel.send(customCmd.response);
+        }
+        
+        return;
+    }
 
     // Check if the command is enabled for this server
     const commandStatus = await Command.findOne({ 

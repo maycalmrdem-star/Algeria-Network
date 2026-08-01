@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require('discord.js');
+const ms = require('ms');
 
 module.exports = {
     name: 'timeout',
@@ -32,6 +33,18 @@ module.exports = {
 
         try {
             await member.timeout(duration, reason);
+
+            const ModerationLog = require('../../../database/models/ModerationLog');
+            await ModerationLog.create({
+                serverId: Message.guild.id,
+                targetId: member.id,
+                targetName: member.user.tag,
+                moderatorId: Message.author.id,
+                moderatorName: Message.author.tag,
+                action: 'timeout',
+                reason: `${ms(duration, { long: true })} | ${reason}`
+            });
+
             Message.channel.send(`Successfully timed out ${member.user.tag} for ${ms(duration, { long: true })}. Reason: ${reason}`);
         } catch (error) {
             console.error('Error timing out member:', error);

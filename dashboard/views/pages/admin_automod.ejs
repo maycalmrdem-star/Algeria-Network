@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head') %>
+    <style>
+        .automod-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1e1e24;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #7289da;
+        }
+
+        .header p {
+            color: #a3a6aa;
+            margin-bottom: 2rem;
+        }
+
+        .feature-card {
+            background-color: #2c2f33;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #7289da;
+        }
+
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-header h3 {
+            margin: 0;
+            color: #fff;
+        }
+
+        .feature-desc {
+            color: #a3a6aa;
+            margin: 0 0 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #7289da; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .badwords-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background-color: #23272a;
+            color: white;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 80px;
+            margin-top: 1rem;
+        }
+
+        .btn-submit {
+            background-color: #7289da;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            background-color: #5b6eae;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar', { user: user }) %>
+    <%- include('../partials/sidebar') %>
+
+    <div class="main-content">
+        <div class="automod-container">
+            <div class="header">
+                <h1>الحماية التلقائية (Auto-Moderation)</h1>
+                <p>اجعل البوت يراقب السيرفر نيابة عنك ليلاً ونهاراً ويمنع المخالفات.</p>
+            </div>
+
+            <form action="/admin/automod" method="POST">
+                <input type="hidden" name="serverId" value="<%= serverId %>">
+                
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>منع الروابط (Anti-Links)</h3>
+                        <label class="switch">
+                            <input type="checkbox" name="antiLinks" <%= config && config.antiLinks ? 'checked' : '' %>>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="feature-desc">سيقوم البوت بحذف أي رسالة تحتوي على روابط خارجية (مثل روابط سيرفرات ديسكورد أخرى أو مواقع مشبوهة).</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>منع السبام والتكرار (Anti-Spam)</h3>
+                        <label class="switch">
+                            <input type="checkbox" name="antiSpam" <%= config && config.antiSpam ? 'checked' : '' %>>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="feature-desc">سيقوم البوت بحذف الرسائل إذا قام العضو بإرسال عدد كبير من الرسائل في وقت قصير جداً لتجنب إزعاج السيرفر.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>منع الكلمات الممنوعة (Anti-Bad Words)</h3>
+                        <label class="switch">
+                            <input type="checkbox" name="antiBadWords" <%= config && config.antiBadWords ? 'checked' : '' %>>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="feature-desc">سيقوم البوت بحذف أي رسالة تحتوي على الكلمات التي تحددها في الصندوق بالأسفل.</p>
+                    
+                    <textarea class="badwords-input" name="badWordsList" placeholder="اكتب الكلمات الممنوعة هنا وافصل بينها بفاصلة. مثال: كلمة1, كلمة2, كلمة3"><%= config && config.badWordsList ? config.badWordsList.join(', ') : '' %></textarea>
+                </div>
+                
+                <button type="submit" class="btn-submit">تفعيل الحماية وحفظ الإعدادات</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

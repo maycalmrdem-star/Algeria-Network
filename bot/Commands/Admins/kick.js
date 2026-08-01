@@ -32,6 +32,18 @@ module.exports = {
 
         try {
             await member.kick(reason);
+
+            const ModerationLog = require('../../../database/models/ModerationLog');
+            await ModerationLog.create({
+                serverId: Message.guild.id,
+                targetId: member.id,
+                targetName: member.user.tag,
+                moderatorId: Message.author.id,
+                moderatorName: Message.author.tag,
+                action: 'kick',
+                reason: reason
+            });
+
             Message.channel.send(`Successfully kicked ${member.user.tag} for reason: ${reason}`);
         } catch (error) {
             console.error('Error kicking member:', error);

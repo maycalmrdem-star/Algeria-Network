@@ -248,15 +248,15 @@
         <div class="nav-section">
             <div class="nav-title"><i class="fas fa-chevron-down mr-2"></i> MODULES</div>
             <a href="/admin/commands" class="nav-item"><i class="fas fa-terminal"></i> Custom Commands <span class="badge">ON</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-hand-paper"></i> Welcome & Goodbye <span class="badge">ON</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-reply"></i> Auto Responder <span class="badge">ON</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-arrow-up"></i> Level System <span class="badge premium-badge">PREMIUM</span></a>
+            <a href="/admin/welcome" class="nav-item"><i class="fas fa-hand-paper"></i> Welcome & Goodbye <span class="badge">ON</span></a>
+            <a href="/admin/tickets" class="nav-item"><i class="fas fa-ticket-alt"></i> Tickets <span class="badge">ON</span></a>
+            <a href="/admin/tempchannels" class="nav-item"><i class="fas fa-headphones"></i> Temp Channels <span class="badge">ON</span></a>
         </div>
 
         <div class="nav-section">
             <div class="nav-title"><i class="fas fa-chevron-down mr-2"></i> MODERATION</div>
             <a href="/admin/moderation" class="nav-item"><i class="fas fa-gavel"></i> Moderation <span class="badge">ON</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-robot"></i> Automod <span class="badge">ON</span></a>
+            <a href="/admin/automod" class="nav-item"><i class="fas fa-robot"></i> Automod <span class="badge">ON</span></a>
         </div>
     </div>
 
@@ -328,7 +328,7 @@
                     <div class="card-title">Welcome & Goodbye</div>
                 </div>
                 <div class="card-desc">Greet new members and say goodbye to leaving ones</div>
-                <button class="card-btn">Visit ></button>
+                <a href="/admin/welcome"><button class="card-btn">Visit ></button></a>
             </div>
 
             <!-- Moderation -->
@@ -340,6 +340,39 @@
                 </div>
                 <div class="card-desc">IP Ban, warn, kick, and manage your server securely</div>
                 <a href="/admin/moderation"><button class="card-btn">Visit ></button></a>
+            </div>
+            
+            <!-- Tickets -->
+            <div class="card">
+                <div class="toggle-switch active"></div>
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-ticket-alt"></i></div>
+                    <div class="card-title">Tickets System</div>
+                </div>
+                <div class="card-desc">Advanced button-based ticket system for support</div>
+                <a href="/admin/tickets"><button class="card-btn">Visit ></button></a>
+            </div>
+            
+            <!-- Temp Channels -->
+            <div class="card">
+                <div class="toggle-switch active"></div>
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-headphones"></i></div>
+                    <div class="card-title">Temp Channels</div>
+                </div>
+                <div class="card-desc">Automatic temporary voice channels for members</div>
+                <a href="/admin/tempchannels"><button class="card-btn">Visit ></button></a>
+            </div>
+            
+            <!-- AutoMod -->
+            <div class="card">
+                <div class="toggle-switch active"></div>
+                <div class="card-header">
+                    <div class="icon-box"><i class="fas fa-robot"></i></div>
+                    <div class="card-title">Auto-Moderation</div>
+                </div>
+                <div class="card-desc">24/7 protection against links, spam, and bad words</div>
+                <a href="/admin/automod"><button class="card-btn">Visit ></button></a>
             </div>
         </div>
 

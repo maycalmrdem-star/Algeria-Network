@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head') %>
+    <style>
+        .custom-commands-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1e1e24;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #7289da;
+        }
+
+        .header p {
+            color: #a3a6aa;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: #2c2f33;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-submit {
+            background-color: #7289da;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #5b6eae;
+        }
+
+        .commands-list {
+            margin-top: 3rem;
+        }
+
+        .command-card {
+            background-color: #2c2f33;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .command-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #7289da;
+        }
+
+        .command-card p {
+            margin: 0;
+            color: #ddd;
+        }
+
+        .btn-delete {
+            background-color: #ed4245;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-delete:hover {
+            background-color: #c03537;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar', { user: user }) %>
+    <%- include('../partials/sidebar') %>
+
+    <div class="main-content">
+        <div class="custom-commands-container">
+            <div class="header">
+                <h1>صانع الأوامر (Custom Commands)</h1>
+                <p>قم بإنشاء أوامر مخصصة للرد التلقائي في سيرفرك. (مثال: إذا كتب العضو .ping، يرد البوت pong!)</p>
+            </div>
+
+            <form action="/admin/commands" method="POST">
+                <input type="hidden" name="serverId" value="<%= serverId %>">
+                
+                <div class="form-group">
+                    <label for="commandName">اسم الأمر (بدون النقطة)</label>
+                    <input type="text" id="commandName" name="commandName" placeholder="مثال: ping" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="response">رد البوت</label>
+                    <textarea id="response" name="response" placeholder="مثال: pong!" required></textarea>
+                </div>
+                
+                <button type="submit" class="btn-submit">إضافة أمر جديد</button>
+            </form>
+
+            <div class="commands-list">
+                <h2>الأوامر الحالية</h2>
+                <% if (customCommands && customCommands.length > 0) { %>
+                    <% customCommands.forEach(cmd => { %>
+                        <div class="command-card">
+                            <div>
+                                <h3>.<%= cmd.commandName %></h3>
+                                <p><%= cmd.response %></p>
+                            </div>
+                            <form action="/admin/commands/delete" method="POST" onsubmit="return confirm('هل أنت متأكد أنك تريد حذف هذا الأمر؟');">
+                                <input type="hidden" name="commandId" value="<%= cmd._id %>">
+                                <button type="submit" class="btn-delete">حذف</button>
+                            </form>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p style="color: #a3a6aa;">لا توجد أوامر مخصصة حالياً.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

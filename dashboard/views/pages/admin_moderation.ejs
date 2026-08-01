@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head') %>
+    <style>
+        .moderation-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1e1e24;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #7289da;
+        }
+
+        .header p {
+            color: #a3a6aa;
+            margin-bottom: 2rem;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .log-table th, .log-table td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-table th {
+            background-color: #2c2f33;
+            color: #99aab5;
+            font-weight: 600;
+        }
+
+        .log-table tr:hover {
+            background-color: #2c2f33;
+        }
+
+        .action-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .action-ban { background-color: #ed4245; color: white; }
+        .action-kick { background-color: #f1c40f; color: black; }
+        .action-warn { background-color: #e67e22; color: white; }
+        .action-timeout { background-color: #3498db; color: white; }
+        .action-unban { background-color: #2ecc71; color: white; }
+
+        .empty-logs {
+            text-align: center;
+            padding: 3rem;
+            color: #72767d;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar', { user: user }) %>
+    <%- include('../partials/sidebar') %>
+
+    <div class="main-content">
+        <div class="moderation-container">
+            <div class="header">
+                <h1>سجلات الإشراف (Moderation Logs)</h1>
+                <p>مراقبة حركات المشرفين في السيرفر (الحظر، الطرد، التحذير، وغيرها).</p>
+            </div>
+
+            <% if (logs && logs.length > 0) { %>
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>الإجراء</th>
+                            <th>العضو المستهدف</th>
+                            <th>المشرف</th>
+                            <th>السبب</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% logs.forEach(log => { %>
+                            <tr>
+                                <td><span class="action-badge action-<%= log.action %>"><%= log.action %></span></td>
+                                <td><%= log.targetName %> <br><small style="color:#72767d"><%= log.targetId %></small></td>
+                                <td><%= log.moderatorName %></td>
+                                <td><%= log.reason %></td>
+                                <td><%= new Date(log.date).toLocaleString('ar-EG') %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div class="empty-logs">
+                    <h3>لا توجد سجلات إشراف حتى الآن.</h3>
+                    <p>عندما يقوم أحد المشرفين باستخدام أوامر الإشراف (مثل .ban) ستظهر الحركات هنا.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

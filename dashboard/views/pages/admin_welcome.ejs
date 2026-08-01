@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head') %>
+    <style>
+        .welcome-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1e1e24;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #7289da;
+        }
+
+        .header p {
+            color: #a3a6aa;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"], 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: #2c2f33;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Toggle Switch CSS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+        input:checked + .slider {
+            background-color: #2ecc71;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2ecc71;
+        }
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .btn-submit {
+            background-color: #7289da;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            background-color: #5b6eae;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #7289da;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar', { user: user }) %>
+    <%- include('../partials/sidebar') %>
+
+    <div class="main-content">
+        <div class="welcome-container">
+            <div class="header">
+                <h1>نظام الترحيب (Welcome System)</h1>
+                <p>قم بإعداد رسالة الترحيب التي تظهر عندما ينضم عضو جديد إلى سيرفرك.</p>
+            </div>
+
+            <form action="/admin/welcome" method="POST">
+                <input type="hidden" name="serverId" value="<%= serverId %>">
+                
+                <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+                    <label style="margin: 0; font-size: 1.2rem;">تفعيل نظام الترحيب</label>
+                    <label class="switch">
+                        <input type="checkbox" name="enabled" <%= config && config.enabled ? 'checked' : '' %>>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="channelId">روم الترحيب (Welcome Channel)</label>
+                    <select name="channelId" id="channelId" required>
+                        <option value="" disabled <%= !(config && config.channelId) ? 'selected' : '' %>>-- اختر الروم --</option>
+                        <% channels.forEach(c => { %>
+                            <option value="<%= c.id %>" <%= (config && config.channelId === c.id) ? 'selected' : '' %>># <%= c.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="messageText">رسالة الترحيب</label>
+                    <p style="font-size: 0.85rem; color: #a3a6aa; margin-top: -5px; margin-bottom: 5px;">
+                        المتغيرات المتاحة: [user] = منشن العضو ، [server] = اسم السيرفر ، [memberCount] = عدد الأعضاء
+                    </p>
+                    <textarea id="messageText" name="messageText" required><%= config ? config.messageText : '' %></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageUrl">رابط صورة الخلفية للترحيب (Image URL)</label>
+                    <input type="text" id="imageUrl" name="imageUrl" value="<%= config ? config.imageUrl : '' %>" oninput="updatePreview(this.value)">
+                    <% if (config && config.imageUrl) { %>
+                        <img id="imagePreview" class="image-preview" src="<%= config.imageUrl %>" alt="Welcome Background Preview" onerror="this.style.display='none'">
+                    <% } else { %>
+                        <img id="imagePreview" class="image-preview" style="display:none;" alt="Welcome Background Preview" onerror="this.style.display='none'">
+                    <% } %>
+                </div>
+                
+                <button type="submit" class="btn-submit">حفظ الإعدادات</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updatePreview(url) {
+            const preview = document.getElementById('imagePreview');
+            if (url && url.trim() !== '') {
+                preview.src = url;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -588,6 +588,319 @@ async function fetchCoinLeaderboard(page, limit, userId) {
         return { leaderboard: [], totalUsers: 0, userRank: null, userBalance: 0 };
     }
 }
+app.get('/admin/commands', ensureAdmin, async (req, res) => {
+    const CustomCommand = require('../database/models/CustomCommand.js');
+    
+    const adminGuilds = req.user.guilds.filter(guild => (guild.permissions & 0x8) === 0x8);
+    const defaultGuildId = adminGuilds.length > 0 ? adminGuilds[0].id : null;
+    
+    let customCommands = [];
+    if (defaultGuildId) {
+        customCommands = await CustomCommand.find({ serverId: defaultGuildId }).lean();
+    }
+
+    res.render('pages/admin_commands', {
+        user: req.user,
+        customCommands: customCommands,
+        serverId: defaultGuildId
+    });
+});
+
+app.post('/admin/commands', ensureAdmin, async (req, res) => {
+    const CustomCommand = require('../database/models/CustomCommand.js');
+    const { serverId, commandName, response } = req.body;
+    
+    if (!serverId || !commandName || !response) {
+        return res.status(400).send("Missing required fields");
+    }
+
+    try {
+        const cmd = new CustomCommand({
+            serverId,
+            commandName: commandName.toLowerCase(),
+            response
+        });
+        await cmd.save();
+        res.redirect('/admin/commands');
+    } catch (err) {
+        console.error("Error saving custom command:", err);
+        res.status(500).send("Error saving command. It might already exist.");
+    }
+});
+
+app.post('/admin/commands/delete', ensureAdmin, async (req, res) => {
+    const CustomCommand = require('../database/models/CustomCommand.js');
+    const { commandId } = req.body;
+    
+    try {
+        await CustomCommand.findByIdAndDelete(commandId);
+        res.redirect('/admin/commands');
+    } catch (err) {
+        res.status(500).send("Error deleting command.");
+    }
+});
+
+app.get('/admin/moderation', ensureAdmin, async (req, res) => {
+    const ModerationLog = require('../database/models/ModerationLog.js');
+    
+    const adminGuilds = req.user.guilds.filter(guild => (guild.permissions & 0x8) === 0x8);
+    const defaultGuildId = adminGuilds.length > 0 ? adminGuilds[0].id : null;
+    
+    let logs = [];
+    if (defaultGuildId) {
+        logs = await ModerationLog.find({ serverId: defaultGuildId }).sort({ date: -1 }).limit(50).lean();
+    }
+
+    res.render('pages/admin_moderation', {
+        user: req.user,
+        logs: logs,
+        serverId: defaultGuildId
+    });
+});
+
+app.get('/admin/welcome', ensureAdmin, async (req, res) => {
+    const WelcomeConfig = require('../database/models/WelcomeConfig.js');
+    
+    const adminGuilds = req.user.guilds.filter(guild => (guild.permissions & 0x8) === 0x8);
+    const defaultGuildId = adminGuilds.length > 0 ? adminGuilds[0].id : null;
+    
+    let config = null;
+    let guildChannels = [];
+    if (defaultGuildId) {
+        config = await WelcomeConfig.findOne({ serverId: defaultGuildId }).lean();
+        if (!config) {
+            config = { enabled: false, channelId: '', messageText: 'Welcome [user] to **[server]**! You are our [memberCount]th member.', imageUrl: 'https://i.imgur.com/x0R9r2P.jpeg' };
+        }
+        
+        // Fetch channels to let them choose
+        const client = require('../bot/index.js');
+        const guild = client.guilds.cache.get(defaultGuildId);
+        if (guild) {
+            guildChannels = guild.channels.cache.filter(c => c.type === 0).map(c => ({ id: c.id, name: c.name }));
+        }
+    }
+
+    res.render('pages/admin_welcome', {
+        user: req.user,
+        config: config,
+        channels: guildChannels,
+        serverId: defaultGuildId
+    });
+});
+
+app.post('/admin/welcome', ensureAdmin, async (req, res) => {
+    const WelcomeConfig = require('../database/models/WelcomeConfig.js');
+    const { serverId, enabled, channelId, messageText, imageUrl } = req.body;
+    
+    if (!serverId) return res.status(400).send("No server ID");
+
+    try {
+        await WelcomeConfig.findOneAndUpdate(
+            { serverId },
+            {
+                enabled: enabled === 'on',
+                channelId,
+                messageText,
+                imageUrl
+            },
+            { upsert: true, new: true }
+        );
+        res.redirect('/admin/welcome');
+    } catch (err) {
+        console.error("Error updating welcome config:", err);
+        res.status(500).send("Error updating config.");
+    }
+});
+
+app.get('/admin/automod', ensureAdmin, async (req, res) => {
+    const AutoModConfig = require('../database/models/AutoModConfig.js');
+    
+    const adminGuilds = req.user.guilds.filter(guild => (guild.permissions & 0x8) === 0x8);
+    const defaultGuildId = adminGuilds.length > 0 ? adminGuilds[0].id : null;
+    
+    let config = null;
+    if (defaultGuildId) {
+        config = await AutoModConfig.findOne({ serverId: defaultGuildId }).lean();
+        if (!config) {
+            config = { antiLinks: false, antiSpam: false, antiBadWords: false, badWordsList: [] };
+        }
+    }
+
+    res.render('pages/admin_automod', {
+        user: req.user,
+        config: config,
+        serverId: defaultGuildId
+    });
+});
+
+app.post('/admin/automod', ensureAdmin, async (req, res) => {
+    const AutoModConfig = require('../database/models/AutoModConfig.js');
+    const { serverId, antiLinks, antiSpam, antiBadWords, badWordsList } = req.body;
+    
+    if (!serverId) return res.status(400).send("No server ID");
+
+    // Convert comma-separated bad words into array
+    let parsedBadWords = [];
+    if (badWordsList && badWordsList.trim() !== '') {
+        parsedBadWords = badWordsList.split(',').map(word => word.trim()).filter(word => word.length > 0);
+    }
+
+    try {
+        await AutoModConfig.findOneAndUpdate(
+            { serverId },
+            {
+                antiLinks: antiLinks === 'on',
+                antiSpam: antiSpam === 'on',
+                antiBadWords: antiBadWords === 'on',
+                badWordsList: parsedBadWords
+            },
+            { upsert: true, new: true }
+        );
+        res.redirect('/admin/automod');
+    } catch (err) {
+        console.error("Error updating automod config:", err);
+        res.status(500).send("Error updating config.");
+    }
+});
+
+app.get('/admin/tickets', ensureAdmin, async (req, res) => {
+    const TicketConfig = require('../database/models/TicketConfig.js');
+    const client = require('../bot/index.js');
+    
+    const adminGuilds = req.user.guilds.filter(guild => (guild.permissions & 0x8) === 0x8);
+    const defaultGuildId = adminGuilds.length > 0 ? adminGuilds[0].id : null;
+    
+    let config = null;
+    let categories = [];
+    let textChannels = [];
+    let roles = [];
+
+    if (defaultGuildId) {
+        config = await TicketConfig.findOne({ serverId: defaultGuildId }).lean();
+        if (!config) {
+            config = { categoryId: '', adminRoleId: '' };
+        }
+        
+        const guild = client.guilds.cache.get(defaultGuildId);
+        if (guild) {
+            categories = guild.channels.cache.filter(c => c.type === 4).map(c => ({ id: c.id, name: c.name })); // 4 = GUILD_CATEGORY
+            textChannels = guild.channels.cache.filter(c => c.type === 0).map(c => ({ id: c.id, name: c.name })); // 0 = GUILD_TEXT
+            roles = guild.roles.cache.map(r => ({ id: r.id, name: r.name }));
+        }
+    }
+
+    res.render('pages/admin_tickets', {
+        user: req.user,
+        config: config,
+        categories: categories,
+        textChannels: textChannels,
+        roles: roles,
+        serverId: defaultGuildId
+    });
+});
+
+app.post('/admin/tickets/save', ensureAdmin, async (req, res) => {
+    const TicketConfig = require('../database/models/TicketConfig.js');
+    const { serverId, categoryId, adminRoleId } = req.body;
+    
+    if (!serverId) return res.status(400).send("No server ID");
+
+    try {
+        await TicketConfig.findOneAndUpdate(
+            { serverId },
+            { categoryId, adminRoleId },
+            { upsert: true, new: true }
+        );
+        res.redirect('/admin/tickets');
+    } catch (err) {
+        res.status(500).send("Error saving config");
+    }
+});
+
+app.post('/admin/tickets/send-panel', ensureAdmin, async (req, res) => {
+    const { serverId, panelChannelId } = req.body;
+    const client = require('../bot/index.js');
+    const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+    try {
+        const guild = client.guilds.cache.get(serverId);
+        if (!guild) return res.status(404).send("Guild not found");
+
+        const channel = guild.channels.cache.get(panelChannelId);
+        if (!channel) return res.status(404).send("Channel not found");
+
+        const embed = new EmbedBuilder()
+            .setColor('#7289da')
+            .setTitle('🎫 نظام الدعم الفني (Tickets)')
+            .setDescription('للتواصل مع الإدارة أو فتح تذكرة دعم فني، يرجى الضغط على الزر بالأسفل.');
+
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('create_ticket')
+                .setLabel('فتح تذكرة')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('📩')
+        );
+
+        await channel.send({ embeds: [embed], components: [row] });
+        res.redirect('/admin/tickets?success=true');
+    } catch (err) {
+        console.error("Error sending ticket panel:", err);
+        res.status(500).send("Error sending panel.");
+    }
+});
+
+app.get('/admin/tempchannels', ensureAdmin, async (req, res) => {
+    const TempChannelConfig = require('../database/models/TempChannelConfig.js');
+    const client = require('../bot/index.js');
+    
+    const adminGuilds = req.user.guilds.filter(guild => (guild.permissions & 0x8) === 0x8);
+    const defaultGuildId = adminGuilds.length > 0 ? adminGuilds[0].id : null;
+    
+    let config = null;
+    let categories = [];
+    let voiceChannels = [];
+
+    if (defaultGuildId) {
+        config = await TempChannelConfig.findOne({ serverId: defaultGuildId }).lean();
+        if (!config) {
+            config = { joinChannelId: '', categoryId: '' };
+        }
+        
+        const guild = client.guilds.cache.get(defaultGuildId);
+        if (guild) {
+            categories = guild.channels.cache.filter(c => c.type === 4).map(c => ({ id: c.id, name: c.name })); // 4 = GUILD_CATEGORY
+            voiceChannels = guild.channels.cache.filter(c => c.type === 2).map(c => ({ id: c.id, name: c.name })); // 2 = GUILD_VOICE
+        }
+    }
+
+    res.render('pages/admin_tempchannels', {
+        user: req.user,
+        config: config,
+        categories: categories,
+        voiceChannels: voiceChannels,
+        serverId: defaultGuildId
+    });
+});
+
+app.post('/admin/tempchannels/save', ensureAdmin, async (req, res) => {
+    const TempChannelConfig = require('../database/models/TempChannelConfig.js');
+    const { serverId, joinChannelId, categoryId } = req.body;
+    
+    if (!serverId) return res.status(400).send("No server ID");
+
+    try {
+        await TempChannelConfig.findOneAndUpdate(
+            { serverId },
+            { joinChannelId, categoryId },
+            { upsert: true, new: true }
+        );
+        res.redirect('/admin/tempchannels?success=true');
+    } catch (err) {
+        res.status(500).send("Error saving config");
+    }
+});
+
 app.get('/admin', ensureAdmin, (req, res) => {
     res.render('pages/admin', {
         user: req.user

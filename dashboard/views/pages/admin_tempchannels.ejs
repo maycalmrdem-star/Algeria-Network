@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head') %>
+    <style>
+        .temp-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1e1e24;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #7289da;
+        }
+
+        .header p {
+            color: #a3a6aa;
+            margin-bottom: 2rem;
+        }
+
+        .section-card {
+            background-color: #2c2f33;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #7289da;
+        }
+
+        .section-card h3 {
+            margin-top: 0;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #a3a6aa;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background-color: #23272a;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .btn-submit {
+            background-color: #7289da;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background-color: #5b6eae;
+        }
+
+        .alert-success {
+            background-color: #43b581;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar', { user: user }) %>
+    <%- include('../partials/sidebar') %>
+
+    <div class="main-content">
+        <div class="temp-container">
+            <div class="header">
+                <h1>الغرف الصوتية المؤقتة (Temp Channels)</h1>
+                <p>اسمح لأعضاء سيرفرك بإنشاء رومات صوتية خاصة بهم تلقائياً.</p>
+            </div>
+
+            <div class="alert-success" id="successAlert">
+                تم حفظ إعدادات الغرف المؤقتة بنجاح!
+            </div>
+
+            <div class="section-card">
+                <h3>إعدادات الغرف المؤقتة</h3>
+                <form action="/admin/tempchannels/save" method="POST">
+                    <input type="hidden" name="serverId" value="<%= serverId %>">
+                    
+                    <div class="form-group">
+                        <label>روم الإنشاء (الروم الذي إذا دخله العضو يتم إنشاء روم له)</label>
+                        <select name="joinChannelId" class="form-control" required>
+                            <option value="">-- اختر روم صوتي --</option>
+                            <% voiceChannels.forEach(ch => { %>
+                                <option value="<%= ch.id %>" <%= config && config.joinChannelId === ch.id ? 'selected' : '' %>><%= ch.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الكاتيجوري (Category) الذي سيتم إنشاء الرومات المؤقتة بداخله</label>
+                        <select name="categoryId" class="form-control" required>
+                            <option value="">-- اختر Category --</option>
+                            <% categories.forEach(cat => { %>
+                                <option value="<%= cat.id %>" <%= config && config.categoryId === cat.id ? 'selected' : '' %>><%= cat.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-submit">حفظ التغييرات</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            document.getElementById('successAlert').style.display = 'block';
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setTimeout(() => {
+                document.getElementById('successAlert').style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

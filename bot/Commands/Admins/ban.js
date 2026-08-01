@@ -32,6 +32,17 @@ module.exports = {
                 return;
             });
 
+        const ModerationLog = require('../../../database/models/ModerationLog');
+        await ModerationLog.create({
+            serverId: Message.guild.id,
+            targetId: member.id,
+            targetName: member.user.tag,
+            moderatorId: Message.author.id,
+            moderatorName: Message.author.tag,
+            action: 'ban',
+            reason: reason
+        });
+
         Message.reply(`${member.user.tag} has been banned by ${Message.author.tag} for reason: ${reason}`);
     }
 }
